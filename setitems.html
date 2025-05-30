@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="title"></title>
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="excel/charstats.js"></script>
+    <script src="excel/gems.js"></script>
+    <script src="excel/itemstatcost.js"></script>
+    <script src="excel/misc.js"></script>
+    <script src="excel/monstats.js"></script>
+    <script src="excel/playerclass.js"></script>
+    <script src="excel/properties.js"></script>
+    <script src="excel/runes.js"></script>
+    <script src="excel/skilldesc.js"></script>
+    <script src="excel/skills.js"></script>
+
+    <script src="strings/item-modifiers.js"></script>
+    <script src="strings/item-runes.js"></script>
+    <script src="strings/monsters.js"></script>
+    <script src="strings/skills.js"></script>
+
+    <script src="js/jcy.js"></script>
+    <script src="js/my_runeword.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const current = window.location.pathname.split("/").pop();  // 获取当前文件名
+            const links = document.querySelectorAll("h2 a");
+
+            links.forEach(link => {
+                const href = link.getAttribute("href");
+                if (href === current) {
+                    link.classList.add("active");
+                }
+            });
+        });
+        
+        //符文之语
+        let runewords = [];
+        let propertyMap = {};
+        let itemstatcostMap = {};
+        let miscMap = {};
+        let skillMap = {};
+        let skilldescMap = {}
+        let gemMap = {};
+        let playclassMap = {};
+        let charstatMap = {};
+        const LOCAL_MAP = {};
+
+        window.onload = function () {
+            loadLNG();
+
+            //charstats.js remove Expansion
+            EXCEL_CHARSTATS.splice(5, 1);
+
+            //playerclass.js remove Expansion
+            EXCEL_PLAYERCLASS.splice(5, 1);
+
+            document.getElementById('searchInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    filter();
+                }
+            });
+
+            // 重置按钮功能
+            document.getElementById('resetBtn').addEventListener('click', function () {
+                // 清空搜索框
+                document.getElementById('searchInput').value = '';
+
+                // 取消所有单选框的选中状态
+                const radioButtons = document.querySelectorAll('input[type="radio"]');
+                radioButtons.forEach(radio => {
+                    radio.checked = false;
+                });
+
+                filter();
+            });
+
+            document.getElementById('searchForm').querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    filter();
+                });
+            });
+
+            const langButtons = document.querySelectorAll('.lang-btn');
+            // 为每个按钮添加点击事件
+            langButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const selectedLang = this.getAttribute('data-lang');
+                    if (selectedLang !== LNG) {
+                        saveLNG(selectedLang);
+
+                        langButtons.forEach(button => {
+                            button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
+                        });
+
+                        init();
+                        filter();
+                    }
+                });
+                button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
+            });
+
+            init();
+            filter();
+        }
+
+        function init() {
+
+            /** I18n **/
+            PLACEHODERS.forEach(item => {
+                document.getElementById(item.id).placeholder = item[LNG];
+            });
+            COMPONENTS.forEach(item => {
+                document.getElementById(item.id).innerHTML = item[LNG];
+            });
+            const radios = document.querySelectorAll('#searchForm input[type="radio"]');
+            const labels = document.querySelectorAll('#searchForm label');
+            labels.forEach((label, i) => {
+                label.innerText = RADIOS[i][LNG];
+                label.prepend(radios[i]); // 重新把 radio 放回 label 前面
+            });
+
+            for (const item of STRINGS_ITEM_MODIFIERS) {
+                LOCAL_MAP[item.Key] = item
+            }
+            for (const item of STRINGS_ITEM_RUNES) {
+                LOCAL_MAP[item.Key] = item
+            }
+            for (const item of STRINGS_SKILLS) {
+                LOCAL_MAP[item.Key] = item
+            }
+            for (const item of STRINGS_MONSTERS) {
+                LOCAL_MAP[item.Key] = item;
+            }
+
+            //符文(杂项属性)
+            for (const item of EXCEL_MISC) {
+                if (/^r\d{2}$/i.test(item.code)) {
+                    miscMap[item.code] = item;
+                }
+            }
+
+            //技能(id/skill/小写连拼 三映射)
+            for (const item of EXCEL_SKILLS) {
+                skillMap[item.skill] = item;
+                skillMap[item[`*Id`]] = item;
+                skillMap[normalizeSkillName(item.skill)] = item;
+            }
+
+            //技能描述
+            for (const item of EXCEL_SKILLDESC) {
+                skilldescMap[item.skilldesc] = item;
+            }
+
+            //stat
+            for (const item of EXCEL_ITEMSTATCOST) {
+                let obj = JSON.parse(JSON.stringify(item));
+                itemstatcostMap[obj.Stat] = obj;
+            }
+            
+            //playerclass 
+            for (const item of EXCEL_PLAYERCLASS) {
+                playclassMap[item.Code] = item["Player Class"];
+            }
+
+            //charstats
+            for(const charstat of EXCEL_CHARSTATS){
+                charstatMap[charstat.class] = charstat;
+            }
+
+            //MY_ITEMSTATCOST
+            for (const item of MY_ITEMSTATCOST) {
+                let obj = JSON.parse(JSON.stringify(item));
+                itemstatcostMap[obj.Stat] = obj;
+            }
+
+            //符文(宝石属性)
+            for (let gem of EXCEL_GEMS) {
+                if (/^r\d{2}$/i.test(gem.code)) {
+                    //image
+                    gem.image = "<img src='image/" + gem.code + ".png' />";
+
+                    //rune.props
+                    for (const KEY in EQUIPMENT_TYPE) {
+                        const key = EQUIPMENT_TYPE[KEY];
+                        gem[key] = [];
+                        let i = 1;
+                        while (gem[`${key}Mod${i}Code`]) {
+                            gem[key].push({
+                                "Code": gem[`${key}Mod${i}Code`],
+                                "Param": gem[`${key}Mod${i}Param`],
+                                "Min": gem[`${key}Mod${i}Min`],
+                                "Max": gem[`${key}Mod${i}Max`]
+                            });
+                            i++;
+                        }
+                    }
+                    gemMap[gem.code] = gem;
+                }
+            }
+
+            //属性
+            for (const item of EXCEL_PROPERTIES) {
+                let obj = JSON.parse(JSON.stringify(item));
+                obj.stats = [];
+                let i = 1;
+                while (obj[`stat${i}`]) {
+                    obj.stats.push({
+                        "stat": obj[`stat${i}`],
+                        "func": obj[`func${i}`],
+                        "set": obj[`set${i}`],
+                        "val": obj[`val${i}`]
+                    });
+                    i++;
+                }
+                propertyMap[obj.code] = obj;
+            }
+            //MY_PROPERTIES
+            for (const item of MY_PROPERTIES) {
+                let obj = JSON.parse(JSON.stringify(item));
+                obj.stats = [];
+                let i = 1;
+                while (obj[`stat${i}`]) {
+                    obj.stats.push({
+                        "stat": obj[`stat${i}`],
+                        "func": obj[`func${i}`],
+                        "set": obj[`set${i}`],
+                        "val": obj[`val${i}`]
+                    });
+                    i++;
+                }
+                propertyMap[obj.code] = obj;
+            }
+
+            //符文之语
+            runewords = JSON.parse(JSON.stringify(EXCEL_RUNES));
+            //过滤未发布
+            runewords = runewords.filter(rune => rune.complete === 1);
+            for (let runeword of runewords) {
+                //名称(显示/查询)
+                const local = LOCAL_MAP[runeword.Name];
+                runeword.viewName = [local.enUS.toUpperCase(), local.zhCN, local.zhTW].join(" ");
+
+                //可选装备类型
+                runeword.itypes = [];
+                runeword.vtypes = [];
+                let i = 1;
+                while (runeword[`itype${i}`]) {
+                    const it = runeword[`itype${i}`];
+                    runeword.itypes.push(it);
+                    runeword.vtypes.push(EQUIPMENT[it].name[LNG]);
+                    runeword[`is${EQUIPMENT[it].type}`] = true;
+                    i++;
+                }
+
+                //符文列表
+                runeword.levelreq = 0;
+                runeword.runes = [];
+                let j = 1;
+                while (runeword[`Rune${j}`]) {
+                    const rune = clone(runeword[`Rune${j}`]);
+                    runeword.runes.push(rune);
+
+                    const runelevelreq = clone(miscMap[rune]).levelreq;
+                    runeword.levelreq = runeword.levelreq > runelevelreq ? runeword.levelreq : runelevelreq;
+
+                    j++;
+                }
+                runeword.sockets = runeword.runes.length;
+
+                //属性列表
+                runeword.props = [];
+                let k = 1;
+                while (runeword[`T1Code${k}`]) {
+                    runeword.props.push({
+                        "Code": runeword[`T1Code${k}`],
+                        "Param": runeword[`T1Param${k}`],
+                        "Min": runeword[`T1Min${k}`],
+                        "Max": runeword[`T1Max${k}`]
+                    });
+                    k++;
+                }
+
+                // descs分类拼接
+                for (const KEY in EQUIPMENT_TYPE) {
+                    const key = EQUIPMENT_TYPE[KEY];
+                    if (!runeword[`is${key}`]) continue;
+                    let descs = [];
+
+                    // descs符文之语
+                    for (const prop of runeword.props) {
+                        const property = clone(propertyMap[prop.Code]);
+                        for (const stat of property.stats) {
+                            const desc = clone(itemstatcostMap[stat.stat]);
+                            desc.stat = clone(stat);
+                            desc.prop = clone(prop);
+                            descs.push(desc);
+                        }
+                    }
+
+                    // descs符文
+                    if (runeword[`is${key}`]) {
+                        for (const rune of runeword.runes) {
+                            for (const prop of gemMap[rune][key]) {
+                                const property = clone(propertyMap[prop.Code]);
+                                for (const stat of property.stats) {
+                                    const desc = clone(itemstatcostMap[stat.stat]);
+                                    desc.stat = clone(stat);
+                                    desc.prop = clone(prop);
+                                    descs.push(desc);
+                                }
+                            }
+                        }
+                    }
+                    runeword[`${key}`] = descs;
+                }
+
+                // descs分类合并
+                for (const KEY in EQUIPMENT_TYPE) {
+                    const key = EQUIPMENT_TYPE[KEY];
+                    if (!runeword[`is${key}`]) continue;
+                    let arr = runeword[`${key}`];
+                    for (let i = 0; i < arr.length; i++) {
+                        const base = arr[i];
+                        if (UNIQUE_ITEMSTATCOST.includes(base.Stat)) continue;
+                        for (let j = arr.length - 1; j > i; j--) {
+                            const current = arr[j];
+                            if (current.Stat == base.Stat) {
+                                base.prop.Min += current.prop.Min;
+                                base.prop.Max += current.prop.Max;
+                                // 删除高索引项
+                                arr.splice(j, 1);
+                            }
+                        }
+                    }
+                }
+
+                // desc分组合并
+                for (const KEY in EQUIPMENT_TYPE) {
+                    const key = EQUIPMENT_TYPE[KEY];
+                    if (!runeword[`is${key}`]) continue;
+                    let descs = runeword[`${key}`];
+
+                    /**
+                     * STAT_GROUP => 全属性/全抗
+                     **/
+                    for (const item of STAT_GROUP) {
+                        const io = clone(item);
+                        const includesAll = io.in.every(input => descs.map(desc => desc.Stat).includes(input));
+                        if (includesAll) {
+                            const selDescs = descs.filter(desc => io.in.includes(desc.Stat));
+                            const alignment = selDescs.every(desc => desc.prop.Min === selDescs[0].prop.Min);
+                            if (alignment) {
+                                const first = selDescs[0];
+                                io.out.prop = first.prop;
+                                io.out.stat = first.stat;
+                                io.out.descpriority = first.descpriority;
+                                descs.removeAll(selDescs);
+                                descs.push(io.out);
+                            }
+                        }
+                    }
+
+                    /**
+                     * RANGE_GROUP => 大小伤
+                     **/
+                    for (const item of RANGE_GROUP) {
+                        const io = clone(item);
+                        const includesAll = io.in.every(input => descs.map(desc => desc.Stat).includes(input));
+                        if (includesAll) {
+                            const selDescs = descs.filter(desc => io.in.includes(desc.Stat));
+                            const first = selDescs[0];
+                            io.out.prop = first.prop;
+                            io.out.stat = first.stat;
+                            io.out.descpriority = first.descpriority;
+                            descs.removeAll(selDescs);
+                            descs.push(io.out);
+                        }
+                    }
+
+                    //属性词条排序
+                    runeword[`${key}`].sort((a, b) => {
+                        //1.itemstatcost.js descpriority DESC
+                        if (b.descpriority != a.descpriority) {
+                            return b.descpriority - a.descpriority;
+                        }
+                        //2.skills.js *Id DESC
+                        if (skillMap[b.prop.Param] && skillMap[a.prop.Param]) {
+                            if (skillMap[b.prop.Param][`*Id`] != skillMap[a.prop.Param][`*Id`]) {
+                                return skillMap[b.prop.Param][`*Id`] - skillMap[a.prop.Param][`*Id`];
+                            }
+                        }
+                        return -1;
+                    });
+                }
+
+            }
+            
+            const mySet = new Set();
+            for(const runeword of runewords){
+                for(const key in EQUIPMENT_TYPE){
+                    const type = EQUIPMENT_TYPE[key];
+                    const itemstatcosts = runeword[type];
+                    if(!itemstatcosts)continue;
+                    for(const ii of itemstatcosts){
+                        mySet.add(ii.descfunc);
+                    }
+                }
+            }
+            
+
+            console.log("============================================");
+            console.log(mySet);
+            console.log("============================================");
+            //符文之语列表排序 需求等级 ASC
+            runewords.sort((a, b) => a.levelreq - b.levelreq);
+
+        }
+
+        // 过滤符合条件的符文之语
+        function filter() {
+
+            let sel = [];
+
+            const formData = {
+                keyword: document.getElementById('searchForm').querySelector('input[type="text"]').value,
+                type: document.getElementById('searchForm').querySelector('input[name="type"]:checked')?.value || '',
+                sockets: document.getElementById('searchForm').querySelector('input[name="sockets"]:checked')?.value || 0
+            };
+
+            for (const rune of runewords) {
+                if (formData.keyword !== '') {
+                    var value = formData.keyword.toUpperCase();
+                    if (!rune.viewName.includes(value)) {
+                        continue;
+                    }
+                }
+
+                if (formData.sockets != 0) {
+                    if (rune.sockets != formData.sockets) {
+                        continue;
+                    }
+                }
+
+                if (formData.type !== '') {
+                    let tree = [];
+                    let t = formData.type;
+                    while (t !== null) {
+                        tree.push(t);
+                        t = EQUIPMENT[t].parent;
+                    }
+
+                    const allow = rune.itypes.some(tt => tree.includes(tt));
+                    if (!allow) continue;
+                }
+
+                sel.push(rune);
+            }
+
+            result(sel);
+        }
+
+        function result(array) {
+
+            const result = document.getElementById('result');
+            //clear
+            result.innerHTML = '';
+
+            //count
+            const countDiv = document.createElement('div');
+            countDiv.className = 'styled-box';
+            countDiv.append([LOGIC.COUNT_PREFIX[LNG], array.length, LOGIC.COUNT_SUFFIX[LNG]].join(" "));
+            result.appendChild(countDiv);
+
+
+            //list
+            for (const runeword of array) {
+                //container
+                const runewordDiv = document.createElement('div');
+                runewordDiv.className = 'styled-box';
+
+                //name
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'name-box';
+                nameDiv.append(runeword.viewName);
+
+                //image
+                const imageDiv = document.createElement('div');
+                imageDiv.className = "image-box"
+                for (const r of runeword.runes) {
+                    const rune = gemMap[r];
+                    imageDiv.innerHTML += rune.image;
+                }
+
+                //require
+                const requireDiv = document.createElement('div');
+                requireDiv.className = 'require-box';
+                requireDiv.innerHTML += "<div>" + [runeword.sockets, LOGIC.SOCKETS[LNG], runeword.vtypes.join('/')].join(" ") + "</div>";
+                requireDiv.innerHTML += `<div>${LOGIC.REQUIRED_LEVEL[LNG]}` + runeword.levelreq + `</div>`;
+
+                //properties
+                const descDiv = document.createElement('div');
+                descDiv.className = "x-box"
+                for (const KEY in EQUIPMENT_TYPE) {
+                    const key = EQUIPMENT_TYPE[KEY];
+                    if (runeword[`is${key}`]) {
+                        const div = local(key, runeword);
+                        descDiv.appendChild(div);
+                    }
+                }
+
+                runewordDiv.appendChild(nameDiv);
+                runewordDiv.appendChild(imageDiv);
+                runewordDiv.appendChild(requireDiv);
+                runewordDiv.appendChild(descDiv);
+                result.appendChild(runewordDiv);
+
+                for (const div of descDiv.children) {
+                    div.style.width = ((descDiv.offsetWidth / descDiv.children.length) * 0.9) + 'px';
+                }
+            }
+        }
+
+        function local(equipType, runeword) {
+            let propDiv = document.createElement('div');
+            propDiv.className = 'prop-box';
+            propDiv.innerHTML = ["<div class='form-row'>", LOGIC[equipType.toUpperCase()][LNG], "</div>"].join("");
+
+            for (const desc of runeword[equipType]) {
+                const CODE = desc.prop.Code;
+                const PARAM = desc.prop.Param;
+                const MIN = desc.prop.Min;
+                const MAX = desc.prop.Max;
+
+                //0值项不渲染
+                if (MIN === 0) continue;
+
+                const VAL = desc.stat.val;//properties.js valx
+
+                const DESC = MIN >= 0 ? desc.descstrpos : desc.descstrneg;
+                let descfunc = desc.descfunc;// itemstatcost.js descfunc
+
+                //无本地化不渲染
+                if (!LOCAL_MAP[DESC]) continue;
+                let local = LOCAL_MAP[DESC][LNG];
+
+                //依赖descline渲染
+                if (PARAM
+                    && skillMap[PARAM]
+                    && skilldescMap[skillMap[PARAM].skilldesc]
+                    && skilldescMap[skillMap[PARAM].skilldesc]["item proc descline count"]
+                    && skilldescMap[skillMap[PARAM].skilldesc]["item proc descline count"] > 0) {
+                    descfunc = 0xFF;
+                }
+
+                switch (descfunc) {
+                    case 5: {
+                        // #14 Dor "%+d%% 機率擊中使怪物逃跑"
+                        local = local.replace("%+d", MIN * 100 / 128);
+                        break;
+                    }
+                    case 11: {
+                        // "每秒修復 %d 耐久度"
+                        local = local.replace("%d", 100 / PARAM);
+                        break;
+                    }
+                    case 12: {
+                        local = MIN > 1 ? [local, "+", MIN].join("") : local;
+                        break;
+                    }
+                    case 13: {
+                        local = LOCAL_MAP[EXCEL_CHARSTATS[VAL].StrAllSkills][LNG];
+                        local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : ["+", MIN].join(""));
+                        break;
+                    }
+                    case 14: {
+                        const charIndex = parseInt(PARAM / 3);
+                        const skillTabSerial = PARAM % 3 + 1;
+                        const charstat = EXCEL_CHARSTATS[charIndex];
+                        const key = charstat[`StrSkillTab${skillTabSerial}`];
+                        const only = charstat["StrClassOnly"];
+                        local = LOCAL_MAP[key][LNG] + "<span class='only-span'>" + LOCAL_MAP[only][LNG] + "</span>";
+                        local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : ["+", MIN].join(""));
+                        break;
+                    }
+                    case 15: {
+                        local = local.replace("%d", MIN)
+                            .replace("%d", MAX)
+                            .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
+                        break;
+                    }
+                    case 16: {
+                        local = local.replace("%d", MIN < MAX ? ["<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : MIN)
+                            .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
+                        break;
+                    }
+                    case 17: {
+                        local = local.replace("%+d", "+" + (MIN / PERLEVEL));
+                        break;
+                    }
+                    case 19: {
+                        if (CODE.includes("/lvl")) {
+                            if (PARAM) {
+                                local = local.replace("%+d", ["+", PARAM / PERLEVEL].join(""))
+                                    .replace("%d", [PARAM / PERLEVEL].join(""));
+                            } else {
+                                local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN / PERLEVEL, "-", MAX / PERLEVEL, "</span>"].join("") : ["+", MIN / PERLEVEL].join(""))
+                                    .replace("%d", MIN < MAX ? ["<span class='range-span'>", MIN / PERLEVEL, "-", MAX / PERLEVEL, "</span>"].join("") : MIN / PERLEVEL);
+                            }
+                        } else {
+                            local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : ["+", MIN].join(""))
+                                .replace("%d", MIN < MAX ? ["<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : MIN);
+                        }
+                        break;
+                    }
+                    case 23: {//Faith reanimate
+                        local = local.replace("%0", MIN < MAX ? ["<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : MIN)
+                            .replace("%1", LOCAL_MAP[EXCEL_MONSTATS[PARAM].NameStr][LNG]);
+                        break;
+                    }
+                    case 24: {
+                        local = local.replace("%d", MAX)
+                            .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], "</span>"].join(""))
+                            .replace("%d/%d", MIN);
+                        break;
+                    }
+                    case 27: {
+                        const skill = skillMap[PARAM];
+                        const skilldesc = skilldescMap[skill.skilldesc];
+                        const strName = skilldesc[`str name`];
+
+                        const playerclass = playclassMap[skill.charclass];
+                        const playstat = charstatMap[playerclass];
+                        const only = playstat.StrClassOnly;
+
+                        local = local.replace("%+d", ["+", MIN].join(""))
+                            .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[strName][LNG], "</span>"].join(""))
+                            .replace("%s", ["<span class='only-span'>", LOCAL_MAP[only][LNG], "</span>"].join(""));
+                            
+                        break;
+                    }
+                    case 28: {
+                        local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : ["+", MIN].join(""))
+                            .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
+                        break;
+                    }
+                    case 29: {
+                        local = local.replace("%d", MIN < MAX ? ["<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : MIN);
+                        break;
+                    }
+                    /** 自定义区 **/
+                    case 0xF1: {//所有属性/抗性
+                        local = local.replace("%+d", MIN < MAX ? ["+", "<span class='range-span'>", MIN, "-", MAX, "</span>"].join("") : ["+", MIN].join(""))
+                        break;
+                    }
+                    case 0xF2: {//毒伤
+                        local = local.replace(/%d.*?%d/, Math.floor(MIN / (PARAM / FRAMES)) * (PARAM / FRAMES) / 2)
+                            .replace("%d", PARAM / FRAMES);
+                        break;
+                    }
+                    case 0xF3: {//电/冰/火/魔伤
+                        local = local.replace("%d", MIN).replace("%d", MAX);
+                        break;
+                    }
+                    case 0xFF: {//依赖descline渲染
+
+                        const skill = skillMap[`${PARAM}`];
+                        const skilldesc = skilldescMap[skill.skilldesc];
+                        const key = skilldesc["item proc text"];
+                        let count = skilldesc["item proc descline count"];
+
+                        const templet = LOCAL_MAP[key][LNG];
+                        const array = templet.split('\n');
+
+                        for (let index = 0; index < array.length; index++) {
+                            let line = array[index];
+                            if (index === array.length - 1) {
+                                line = line.replace("%s", [skill.auralencalc / FRAMES, LOGIC.SECONDS[LNG]].join(" "));
+                            } else {
+                                const descline = skilldesc[`descline${index}`];
+                                if (descline) {
+                                    desctexta = skilldesc[`desctexta${index}`];
+                                    desccalca = skilldesc[`desccalca${index}`];
+                                    line = line.replace("%s", LOCAL_MAP[desctexta][LNG]
+                                        .replace("%+d", "+"+skill[desccalca.replace("par", "Param")])
+                                        .replace("%d", skill[desccalca.replace("par", "Param")])
+                                        .replace("%s", skill[desccalca.replace("par", "Param")])
+                                        .replace("%%", "%"));
+                                }
+                            }
+                            array[index] = line;
+                        }
+                        local = array.reverse().join("<BR>");
+                        break;
+                    }
+                    default:
+                        console.log(`desc.descfunc = ${descfunc} 未定义渲染方式`);
+                        alert(`desc.descfunc = ${descfunc} 未定义渲染方式`);
+                        break;
+                }
+
+                local = local.replace("%%", "%").replace("+-", "-");//.replace("-+","-");
+                if (local) {
+                    propDiv.innerHTML += local;
+                    if (desc.descstr2) {
+                        propDiv.innerHTML += LOCAL_MAP[desc.descstr2][LNG];
+                    }
+                    propDiv.innerHTML += '<BR>';
+                }
+            }
+            return propDiv;
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="search-box">
+        <div class="title-row">
+            <h2><a id="runewords" href="index.html"></a></h2>
+            <h2><a id="uniqueitems" href="uniqueitems.html"></a></h2>
+            <h2><a id="setitems" href="setitems.html"></a></h2>
+            <div class="language-selector">
+                <button class="lang-btn" data-lang="enUS">EN</button>
+                <button class="lang-btn" data-lang="zhCN">简</button>
+                <button class="lang-btn" data-lang="zhTW">繁</button>
+            </div>
+        </div>
+
+        <form id="searchForm">
+            <!-- 关键词搜索 -->
+            <div class="form-row">
+                <input type="text" id="searchInput" placeholder="">
+                <button type="button" id="resetBtn" class="search-btn">重置条件</button>
+            </div>
+
+            <!-- 装备部位 -->
+            <div class="form-row">
+                <div id="squipmentSlot" class="form-title">装备部位</div>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="type" value="helm"> 头盔</label>
+                    <label class="radio-item"><input type="radio" name="type" value="tors"> 护甲</label>
+                    <label class="radio-item"><input type="radio" name="type" value="shld"> 盾牌</label>
+                    <label class="radio-item"><input type="radio" name="type" value="pala"> 圣骑盾</label>
+
+                    <label class="radio-item"><input type="radio" name="type" value="weap"> 武器</label>
+                    <label class="radio-item"><input type="radio" name="type" value="mele"> 近战武器</label>
+                    <label class="radio-item"><input type="radio" name="type" value="knif"> 匕首</label>
+                    <label class="radio-item"><input type="radio" name="type" value="swor"> 刀剑</label>
+                    <label class="radio-item"><input type="radio" name="type" value="axe"> 斧</label>
+                    <label class="radio-item"><input type="radio" name="type" value="club"> 短棒</label>
+                    <label class="radio-item"><input type="radio" name="type" value="mace"> 钉锤</label>
+                    <label class="radio-item"><input type="radio" name="type" value="hamm"> 重锤</label>
+
+                    <label class="radio-item"><input type="radio" name="type" value="pole"> 长柄武器</label>
+                    <label class="radio-item"><input type="radio" name="type" value="spea"> 长矛</label>
+                    <label class="radio-item"><input type="radio" name="type" value="scep"> 权杖</label>
+                    <label class="radio-item"><input type="radio" name="type" value="wand"> 短杖</label>
+                    <label class="radio-item"><input type="radio" name="type" value="staf"> 法杖</label>
+                    <label class="radio-item"><input type="radio" name="type" value="h2h"> 爪/拳刃</label>
+                    <label class="radio-item"><input type="radio" name="type" value="miss"> 弓/弩</label>
+                </div>
+            </div>
+
+            <!-- 凹槽数量 -->
+            <div class="form-row">
+                <div id="socketCount" class="form-title">凹槽数量</div>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sockets" value="2"> 2孔</label>
+                    <label class="radio-item"><input type="radio" name="sockets" value="3"> 3孔</label>
+                    <label class="radio-item"><input type="radio" name="sockets" value="4"> 4孔</label>
+                    <label class="radio-item"><input type="radio" name="sockets" value="5"> 5孔</label>
+                    <label class="radio-item"><input type="radio" name="sockets" value="6"> 6孔</label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="result"></div>
+</body>
+
+</html>

@@ -1,0 +1,250 @@
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1a1a1a; /* 深黑背景 */
+            color: #c9c9c9; /* 浅灰色文字 */
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-box {
+            background: #2d2d2d; /* 深灰色面板 */
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5); /* 更深的阴影 */
+            border: 1px solid #3a3a3a; /* 添加边框 */
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 4px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            padding: 4px;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .lang-btn.active {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .form-row {
+            margin: 2px;
+            padding: 2px;
+            border-bottom: 1px solid #3a3a3a; /* 暗色分隔线 */
+            color : white;
+        }
+
+        .form-title {
+            color: #8B0000; /* 暗红色标题 */
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: #3a3a3a; /* 深灰背景 */
+            border-radius: 5px;
+            transition: all 0.3s;
+            border: 1px solid #4a4a4a; /* 添加边框 */
+        }
+
+        .radio-item:hover {
+            background: #4a4a4a; /* 悬停变亮 */
+            border-color: #8B0000; /* 暗红色边框 */
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #4a4a4a;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background: #333;
+            color: #ddd;
+        }
+
+        .button-group {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-transform: uppercase; /* 大写字母 */
+            letter-spacing: 1px; /* 字间距 */
+        }
+
+        .search-btn {
+            background: #8B0000; /* 暗红色 */
+            color: #ffd700 !important; /* 金色文字 */
+            border: 1px solid #ffd70033; /* 金色边框 */
+        }
+
+        .search-btn:hover {
+            background: #a30000;
+            box-shadow: 0 0 8px #8B0000;
+        }
+
+        .reset-btn {
+            background: #333;
+            color: #8B0000 !important;
+            border: 1px solid #8B0000;
+        }
+
+        .reset-btn:hover {
+            background: #444;
+            box-shadow: 0 0 8px #8B000066;
+        }
+
+        .styled-box {
+            background-color: #2d2d2d;  /* 纯黑背景 */
+            border: 1px solid #333;    /* 边框（深灰色） */
+            color: #87CEEB;              /* 白色文字 */
+            margin-bottom: 10px;       /* 下边距（div之间的间距） */
+            padding: 15px;             /* 内边距 */
+            border-radius: 10px;        /* 可选：圆角边框 */
+        }
+
+        .name-box {
+            font-size: 20px;
+            color : #DAAE5F;
+            text-align: center;
+        }
+
+        .image-box {
+            text-align: center;
+        }
+
+        .base-box {
+            color: #FFFFFF;
+            text-align: center;
+        }
+
+        .require-box {
+            color: #FFFFFF;
+            text-align: center;
+        }
+
+        .x-box {
+            text-align: center;
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            gap: 10px;
+        }
+
+        .prop-box {
+            color: #3296FF;
+            text-align: center;
+            margin: 0 10px;
+        }
+
+        .range-span {
+            color : #FFD700;
+            text-align: center;
+        }
+
+        .skill-span {
+            color : #FF6600;
+            text-align: center;
+        }
+
+        .only-span {
+            color : red;
+            text-align: center;
+        }
+
+        h2 {
+            color: #DAAE5F !important;
+            text-align: center;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            padding-bottom: 10px;
+
+            /* 默认隐藏边框 */
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        h2 a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            padding: 10px 0;
+            border-bottom: 2px solid transparent;
+            transition: border 0.3s, color 0.3s;
+        }
+
+        /* 鼠标悬停时才显示线 */
+        h2 a:hover {
+            border-bottom: 2px solid #DAAE5F;
+            color: #DAAE5F;
+        }
+
+        /* 当前模块始终有线 */
+        h2 a.active {
+            border-bottom: 2px solid #DAAE5F;
+            color: #DAAE5F;
+        }
+
+        /* 去除访问过颜色 */
+        h2 a:visited {
+            color: inherit;
+        }
+
+
+        /* 选中状态的样式 */
+        input[type="radio"]:checked + span {
+            color: #ffd700; /* 金色选中文字 */
+        }
+
+        input[type="radio"]:checked {
+            accent-color: #8B0000; /* 暗红选中标记 */
+        }
+
+        .none-div {
+            color: #FFFFFF;
+            background-image: url('../image/NONE.png');
+            background-size: 100% 100%; 
+            background-repeat: no-repeat;
+            background-position: center center;
+        }

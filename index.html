@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="title"></title>
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="excel/armor.js"></script>
+    <script src="excel/charstats.js"></script>
+    <script src="excel/gems.js"></script>
+    <script src="excel/itemstatcost.js"></script>
+    <script src="excel/misc.js"></script>
+    <script src="excel/monstats.js"></script>
+    <script src="excel/playerclass.js"></script>
+    <script src="excel/properties.js"></script>
+    <script src="excel/runes.js"></script>
+    <script src="excel/setitems.js"></script>
+    <script src="excel/sets.js"></script>
+    <script src="excel/skilldesc.js"></script>
+    <script src="excel/skills.js"></script>
+    <script src="excel/uniqueitems.js"></script>
+    <script src="excel/weapons.js"></script>
+
+    <script src="strings/item-modifiers.js"></script>
+    <script src="strings/item-names.js"></script>
+    <script src="strings/item-runes.js"></script>
+    <script src="strings/monsters.js"></script>
+    <script src="strings/skills.js"></script>
+
+    <script src="js/d2r_ext.js"></script>
+    <script src="js/jcy.js"></script>
+    <script src="js/runeword.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loaded);
+    </script>
+</head>
+
+<body>
+    <div class="search-box">
+        <div class="title-row">
+            <h2><a id="runewords" href="index.html" class="active"></a></h2>
+            <h2><a id="uniqueitems" href="uniqueitems.html"></a></h2>
+            <div class="language-selector">
+                <button class="lang-btn" data-lang="enUS">EN</button>
+                <button class="lang-btn" data-lang="zhCN">简</button>
+                <button class="lang-btn" data-lang="zhTW">繁</button>
+            </div>
+        </div>
+
+        <form id="searchForm">
+            <!-- 关键词搜索 -->
+            <div class="form-row">
+                <input type="text" id="runewordInput" placeholder="">
+                <button type="button" id="resetBtn" class="search-btn">重置条件</button>
+            </div>
+
+            <!-- 装备部位 -->
+            <div class="form-row">
+                <div id="equipmentSlot" class="form-title">装备部位</div>
+                <div class="radio-group">
+                    <label id="helm" class="radio-item"><input type="radio" name="type" value="helm"> 头盔</label>
+                    <label id="tors" class="radio-item"><input type="radio" name="type" value="tors"> 护甲</label>
+                    <label id="shld" class="radio-item"><input type="radio" name="type" value="shld"> 盾牌</label>
+                    <label id="pala" class="radio-item"><input type="radio" name="type" value="pala"> 圣骑盾</label>
+
+                    <label id="weap" class="radio-item"><input type="radio" name="type" value="weap"> 武器</label>
+                    <label id="mele" class="radio-item"><input type="radio" name="type" value="mele"> 近战武器</label>
+                    <label id="knif" class="radio-item"><input type="radio" name="type" value="knif"> 匕首</label>
+                    <label id="swor" class="radio-item"><input type="radio" name="type" value="swor"> 刀剑</label>
+                    <label id="axe" class="radio-item"><input type="radio" name="type" value="axe"> 斧</label>
+                    <label id="club" class="radio-item"><input type="radio" name="type" value="club"> 短棒</label>
+                    <label id="mace" class="radio-item"><input type="radio" name="type" value="mace"> 钉锤</label>
+                    <label id="hamm" class="radio-item"><input type="radio" name="type" value="hamm"> 重锤</label>
+
+                    <label id="pole" class="radio-item"><input type="radio" name="type" value="pole"> 长柄武器</label>
+                    <label id="spea" class="radio-item"><input type="radio" name="type" value="spea"> 长矛</label>
+                    <label id="scep" class="radio-item"><input type="radio" name="type" value="scep"> 权杖</label>
+                    <label id="wand" class="radio-item"><input type="radio" name="type" value="wand"> 短杖</label>
+                    <label id="staf" class="radio-item"><input type="radio" name="type" value="staf"> 法杖</label>
+                    <label id="h2h" class="radio-item"><input type="radio" name="type" value="h2h"> 爪/拳刃</label>
+                    <label id="miss" class="radio-item"><input type="radio" name="type" value="miss"> 弓/弩</label>
+                </div>
+                
+                <div id="socketCount" class="form-title">凹槽数量</div>
+                <div class="radio-group">
+                    <label id="S2" class="radio-item"><input type="radio" name="sockets" value="2"> 2孔</label>
+                    <label id="S3" class="radio-item"><input type="radio" name="sockets" value="3"> 3孔</label>
+                    <label id="S4" class="radio-item"><input type="radio" name="sockets" value="4"> 4孔</label>
+                    <label id="S5" class="radio-item"><input type="radio" name="sockets" value="5"> 5孔</label>
+                    <label id="S6" class="radio-item"><input type="radio" name="sockets" value="6"> 6孔</label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="result"></div>
+</body>
+
+</html>

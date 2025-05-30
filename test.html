@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draw X in Div</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .x-container {
+            position: relative; /* 必须是 relative，以便伪元素相对于它定位 */
+            width: 200px; /* 容器宽度 */
+            height: 100px; /* 容器高度 */
+            border: 2px solid #333; /* 容器边框，便于观察 */
+            overflow: hidden; /* 防止线条超出容器 */
+        }
+
+        .x-container::before,
+        .x-container::after {
+            content: ''; /* 伪元素必须有 content 属性 */
+            position: absolute; /* 绝对定位 */
+            background-color: red; /* 线条颜色 */
+            /* width 和 height 的设置需要根据具体对角线长度和粗细计算 */
+            height: 2px; /* 线条粗细 */
+            left: 0; /* 从容器左边开始 */
+            top: 50%; /* 垂直居中，然后通过 transform 调整 */
+            transform-origin: left center; /* 旋转中心点设为左中 */
+        }
+
+        /* 第一条对角线：从左上到右下 */
+        .x-container::before {
+            /* 计算对角线长度：使用勾股定理 sqrt(width^2 + height^2) */
+            /* 200px 宽，100px 高的对角线长度是 sqrt(200*200 + 100*100) = sqrt(40000 + 10000) = sqrt(50000)约等于 223.6px */
+            width: 223.6px; /* 略大于对角线实际长度，确保覆盖角落 */
+            top: 0; /* 放置到容器顶部 */
+            left: 0; /* 放置到容器左侧 */
+            transform: rotate(26.565deg); /* 根据 arctan(height/width) 计算角度 atan(100/200) = 26.565度 */
+            transform-origin: top left; /* 旋转原点设为左上角 */
+        }
+
+        /* 第二条对角线：从左下到右上 */
+        .x-container::after {
+            width: 223.6px; /* 长度同上 */
+            top: 100%; /* 放置到容器底部 */
+            left: 0; /* 放置到容器左侧 */
+            transform: rotate(-26.565deg); /* 负角度旋转 */
+            transform-origin: bottom left; /* 旋转原点设为左下角 */
+        }
+
+        /* 调整线条粗细和颜色 */
+        .x-container.thick-blue::before,
+        .x-container.thick-blue::after {
+            background-color: blue;
+            height: 5px; /* 更粗的线条 */
+        }
+
+        /* 如果容器是正方形，角度会是45度 */
+        .square-x {
+            width: 150px;
+            height: 150px;
+            margin-top: 20px;
+            border-color: green;
+        }
+
+        .square-x::before,
+        .square-x::after {
+            width: 212.13px; /* sqrt(150^2 + 150^2) = sqrt(45000)约等于 212.13px */
+            height: 3px;
+            background-color: purple;
+        }
+
+        .square-x::before {
+            transform: rotate(45deg); /* 正方形是45度 */
+            transform-origin: top left;
+        }
+
+        .square-x::after {
+            transform: rotate(-45deg); /* 负45度 */
+            transform-origin: bottom left;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="x-container"></div>
+
+    <div class="x-container thick-blue"></div>
+
+    <div class="x-container square-x"></div>
+
+</body>
+</html>
