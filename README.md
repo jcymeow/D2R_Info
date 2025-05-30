@@ -1,12 +1,11 @@
 # D2R_Runeword
-Diablo II: Resurrected Runeword Query HTML Project
+Diablo II: Resurrected Info Query HTML Project
 
-符文之语查询页 (本地页面无需容器)
-数据解包出来的 绝对正确(如果有错误...那是我网页的问题)
+2025/5/30 v0.9.6
+	项目名称变更,添加暗金物品页
+	修正 毒伤公式
+	修改 使用补档替换符文之语耐久恢复问题
 
-适合平时用PC的朋友
-
-=== 版本 ===
 2025/5/27 发布0.9.5版
 	修复 符文之语装备类型全部显示为盾牌的问题
 
@@ -34,8 +33,4 @@ Diablo II: Resurrected Runeword Query HTML Project
 	优化 UI显示
         
 2025/5/23 发布0.9版
-
-
-=== 目前已知尚未解决的问题 ===
-	VENOM/毒液 符文组 毒伤/持续时间问题.
-	恢复耐久词条 包数据与游戏内不一致.
+	
