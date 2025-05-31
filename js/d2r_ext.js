@@ -17,16 +17,6 @@ const EQUIPMENT_TYPE = {
     SHIELD: "shield",
 };
 
-const STRINGS_EXT = [
-    {
-        "id": 0xF000,
-        "Key": "ModStrF000",
-        "enUS": "%+d random Sorceress skill<span class='only-span'>(Sorceress Only)</span> excludes(<span class='skill-span'>%s</span>)",
-        "zhTW": "%+d隨機魔法使技能<span class='only-span'>(限魔法使使用)</span> 不含(<span class='skill-span'>%s</span>)",
-        "zhCN": "%+d随机巫师技能<span class='only-span'>(仅限巫师)</span> 不含(<span class='skill-span'>%s</span>)"
-    }
-]
-
 const ITEM_TIERS = [
     {
         "zhCN": "(普通級)",
@@ -45,7 +35,7 @@ const ITEM_TIERS = [
         "zhTW": "(精華級)",
         "enUS": "(Elite)",
         "offset": [0, 0, 0]
-    },
+    }
 ];
 
 const UNIQUE_ITEMSTATCOST = [
@@ -53,7 +43,7 @@ const UNIQUE_ITEMSTATCOST = [
     "item_nonclassskill",
     "item_singleskill",
     "item_skillongethit",
-    "item_skillonhit",
+    "item_skillonhit"
 ];
 
 const UNIQUEITEMS_TO_DELETE = [
@@ -75,7 +65,7 @@ const UNIQUEITEMS_TO_DELETE = [
     "Horadric Staff",
     "Hell Forge Hammer",
     "KhalimFlail",
-    "SuperKhalimFlail",
+    "SuperKhalimFlail"
 ];
 
 const EQUIPMENT = {
@@ -184,7 +174,8 @@ const PROPERTIES_EXT = [
         "*Max": "Max #",
         "*Notes": "",
         "*eol": 0
-    }, {
+    },
+    {
         "code": "dmg-max",
         "*Enabled": 1,
         "func1": 6,
@@ -337,6 +328,44 @@ const PROPERTIES_EXT = [
         "*Notes": "",
         "*eol": 0
     },
+    {
+        "code": "randclassskill",
+        "*Enabled": 1,
+        "func1": 36,
+        "stat1": "item_randclassskill",
+        "set1": "",
+        "val1": 3,
+        "func2": "",
+        "stat2": "",
+        "set2": "",
+        "val2": "",
+        "func3": "",
+        "stat3": "",
+        "set3": "",
+        "val3": "",
+        "func4": "",
+        "stat4": "",
+        "set4": "",
+        "val4": "",
+        "func5": "",
+        "stat5": "",
+        "set5": "",
+        "val5": "",
+        "func6": "",
+        "stat6": "",
+        "set6": "",
+        "val6": "",
+        "func7": "",
+        "stat7": "",
+        "set7": "",
+        "val7": "",
+        "*Tooltip": "+# to [Class] Skill Levels",
+        "*Parameter": "",
+        "*Min": "Min Class ID",
+        "*Max": "Max Class ID",
+        "*Notes": "val1 = # of Skill levels",
+        "*eol": 0
+    },
 ];
 
 //itemstatcost.js 补档
@@ -449,6 +478,78 @@ const ITEMSTATCOST_EXT = [
         "advdisplay": "",
         "*eol": 0
     },
+    {
+        "Stat": "item_randclassskill",
+        "*ID": 10083,
+        "Send Other": "",
+        "Signed": 1,
+        "Send Bits": 4,
+        "Send Param Bits": 3,
+        "UpdateAnimRate": "",
+        "Saved": "",
+        "CSvSigned": "",
+        "CSvBits": "",
+        "CSvParam": "",
+        "fCallback": 1,
+        "fMin": "",
+        "MinAccr": "",
+        "Encode": "",
+        "Add": 49523,
+        "Multiply": 1560,
+        "ValShift": "",
+        "1.09-Save Bits": 3,
+        "1.09-Save Add": 0,
+        "Save Bits": 3,
+        "Save Add": 0,
+        "Save Param Bits": 3,
+        "keepzero": "",
+        "op": "",
+        "op param": "",
+        "op base": "",
+        "op stat1": "",
+        "op stat2": "",
+        "op stat3": "",
+        "direct": "",
+        "maxstat": "",
+        "damagerelated": "",
+        "itemevent1": "",
+        "itemeventfunc1": "",
+        "itemevent2": "",
+        "itemeventfunc2": "",
+        "descpriority": 150,
+        "descfunc": 13,
+        "descval": "",
+        "descstrpos": "ModStrF001",
+        "descstrneg": "ModStrF001",
+        "descstr2": "",
+        "dgrp": "",
+        "dgrpfunc": "",
+        "dgrpval": "",
+        "dgrpstrpos": "",
+        "dgrpstrneg": "",
+        "dgrpstr2": "",
+        "stuff": "",
+        "advdisplay": "",
+        "*eol": 0
+    },
+];
+
+// item-modifiers.js 补档
+const ITEM_MODIFIERS_EXT = [
+    {
+        "id": 0xF000,
+        "Key": "ModStrF000",
+        "enUS": "%+d random Sorceress skill<span class='only-span'>(Sorceress Only)</span> excludes(<span class='skill-span'>%s</span>)",
+        "zhTW": "%+d隨機魔法使技能<span class='only-span'>(限魔法使使用)</span> 不含(<span class='skill-span'>%s</span>)",
+        "zhCN": "%+d随机巫师技能<span class='only-span'>(仅限巫师)</span> 不含(<span class='skill-span'>%s</span>)"
+    },
+    {
+        "id": 0xF001,
+        "Key": "ModStrF001",
+        "enUS": "%+d to Random Class Skill Levels",
+        "zhTW": "%+d 隨機角色技能",
+        "zhCN": "%+d 随机角色技能"
+    }
 ];
 
 // 
@@ -668,7 +769,7 @@ const COMPONENTS = [
         "zhCN": "手套",
         "zhTW": "手套",
         "enUS": "Gloves"
-    },   
+    },
     {
         "id": "weap",
         "key": "innerText",
@@ -795,7 +896,7 @@ const COMPONENTS = [
         "zhTW": "標槍",
         "enUS": "Javelin"
     },
-        {
+    {
         "id": "thro",
         "key": "innerText",
         "zhCN": "投掷武器",

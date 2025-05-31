@@ -97,7 +97,7 @@ function init() {
     });
 
     // init LOCAL_MAP [item-modifiers.js, item-names.js, item-runes.js, monsters.js, skills.js, d2r_ext.js]
-    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...STRINGS_EXT]) {
+    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...ITEM_MODIFIERS_EXT]) {
         LOCAL_MAP[item.Key] = item;
     }
 
@@ -245,10 +245,6 @@ function init() {
                 newDesc.descpriority = minObj.descpriority;
                 
                 const selDescs = uniqueitem.descs.filter(desc => io.in.includes(desc.Stat));
-                // const first = selDescs[0];
-                // io.out.param = first.param;
-                // io.out.stat = first.stat;
-                // io.out.descpriority = first.descpriority;
                 uniqueitem.descs.removeAll(selDescs);
                 uniqueitem.descs.push(newDesc);
             }
@@ -263,6 +259,9 @@ function init() {
         });
 
     }
+
+    //暗金物品排序 需求等级 ASC
+    uniqueitems.sort((a, b) => a[`lvl req`] - b[`lvl req`]);
 }
 
 // 过滤符合条件的符文之语
@@ -465,9 +464,12 @@ function local(uniqueitem) {
                 break;
             }
             case 13: {
-                const charstat = 
-                local = LOCAL_MAP[EXCEL_CHARSTATS[desc.stat.val].StrAllSkills][LNG];
-                local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""));
+                if (desc.param.Code === `randclassskill`) {
+                    local = local.replace(`%+d`, `+${desc.stat.val}`);
+                } else {
+                    local = LOCAL_MAP[EXCEL_CHARSTATS[desc.stat.val].StrAllSkills][LNG];
+                    local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""));
+                }
                 break;
             }
             case 14: {
@@ -565,14 +567,16 @@ function local(uniqueitem) {
                 break;
             }
             case 0xF2: {//毒伤
-                let MIN = (desc.min.param.Min+desc.max.param.Min)/2;
-                let MAX = (desc.min.param.Max+desc.max.param.Max)/2;
-                let LEN = (desc.len.param.Min+desc.len.param.Max)/2;
+                let MIN = (desc.min.param.Min+desc.min.param.Min)/2;
+                let MAX = (desc.max.param.Max+desc.max.param.Max)/2;
+                let LEN = ((desc.len.param.Param||desc.len.param.Min)+(desc.len.param.Param||desc.len.param.Max))/2;
                 let SEC = LEN / FRAMES;
 
-                local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)/2*LEN/256))
-                    .replace("%d", SEC);
-
+                if(MIN === MAX){
+                    local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)/2*LEN/256)).replace("%d", SEC);
+                } else {
+                    local = local.replace(`%d`, Math.round(MIN*LEN/256)).replace(`%d`, Math.round(MAX*LEN/256)).replace("%d", SEC);
+                }
                 break;
             }
             case 0xF3: {//电/冰/火/魔伤

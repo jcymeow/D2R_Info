@@ -91,7 +91,7 @@ function init() {
     });
 
     // init LOCAL_MAP
-    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...STRINGS_EXT]) {
+    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...ITEM_MODIFIERS_EXT]) {
         LOCAL_MAP[item.Key] = item;
     }
 
@@ -265,13 +265,10 @@ function init() {
                 for (let j = arr.length - 1; j > i; j--) {
                     const current = arr[j];
                     if (current.Stat == base.Stat) {
-                        if(current.prop.Code === base.prop.Code && current.prop.Code === `dmg-pois`){
-                            base.prop.Min = (base.prop.Min + current.prop.Min)/2
-                            base.prop.Max = (base.prop.Max + current.prop.Max)/2
+                        base.prop.Min += current.prop.Min;
+                        base.prop.Max += current.prop.Max;
+                        if(current.prop.Code === `dmg-pois` && current.prop.Code === `dmg-pois`){
                             base.prop.Param = (base.prop.Param + current.prop.Param)/2
-                        } else {
-                            base.prop.Min += current.prop.Min;
-                            base.prop.Max += current.prop.Max;
                         }
                         // 删除高索引项
                         arr.splice(j, 1);
@@ -313,13 +310,23 @@ function init() {
                 const io = clone(item);
                 const includesAll = io.in.every(input => descs.map(desc => desc.Stat).includes(input));
                 if (includesAll) {
+                    let minObj = descs.filter(desc => desc.Stat === io.in[0])[0];
+                    let maxObj = descs.filter(desc => desc.Stat === io.in[1])[0];
+                    let lenObj = descs.filter(desc => desc.Stat === io.in[2])[0];
+                    
+                    let newDesc = io.out;
+                    newDesc.min = minObj;
+                    newDesc.max = maxObj;
+                    if(lenObj)newDesc.len = lenObj;
+                    newDesc.descpriority = minObj.descpriority;
+
+                    //适应 local 方法, 无用数据
+                    newDesc.prop = minObj.prop;
+                    newDesc.stat = minObj.stat;
+                    
                     const selDescs = descs.filter(desc => io.in.includes(desc.Stat));
-                    const first = selDescs[0];
-                    io.out.prop = first.prop;
-                    io.out.stat = first.stat;
-                    io.out.descpriority = first.descpriority;
                     descs.removeAll(selDescs);
-                    descs.push(io.out);
+                    descs.push(newDesc);
                 }
             }
 
@@ -415,7 +422,7 @@ function result(array) {
 
         //image
         const imageDiv = document.createElement(`div`);
-        imageDiv.className = `image-box`
+        imageDiv.className = `image-box`;
         for (const r of runeword.runes) {
             const rune = gemMap[r];
             imageDiv.innerHTML += rune.image;
@@ -429,7 +436,7 @@ function result(array) {
 
         //properties
         const descDiv = document.createElement(`div`);
-        descDiv.className = `x-box`
+        descDiv.className = `x-box`;
         for (const KEY in EQUIPMENT_TYPE) {
             const key = EQUIPMENT_TYPE[KEY];
             if (runeword[`is${key}`]) {
@@ -456,142 +463,147 @@ function local(equipType, runeword) {
     propDiv.innerHTML = [`<div class="form-row">`, LOGIC[equipType.toUpperCase()][LNG], `</div>`].join(``);
 
     for (const desc of runeword[equipType]) {
-        const CODE = desc.prop.Code;
-        const PARAM = desc.prop.Param;
-        const MIN = desc.prop.Min;
-        const MAX = desc.prop.Max;
-
         //0值项不渲染
-        if (MIN === 0) continue;
-
-        const VAL = desc.stat.val;//properties.js valx
-
-        const DESC = MIN >= 0 ? desc.descstrpos : desc.descstrneg;
-        let descfunc = desc.descfunc;// itemstatcost.js descfunc
+        if ( (desc.prop ? desc.prop.Min : desc.min.prop.Min) === 0 ) continue;
 
         //无本地化不渲染
-        if (!LOCAL_MAP[DESC]) continue;
-        let local = LOCAL_MAP[DESC][LNG];
+        let descstr = desc.descstrpos;
+        if(desc.param && desc.param.Min && desc.param.Min < 0){
+            descstr = desc.descstrneg;
+        }
+        let local = LOCAL_MAP[descstr];
+        if(!local)continue;
+        local = local[LNG];
 
+        let descfunc = desc.descfunc;
         //依赖descline渲染
-        if (PARAM
-            && skillMap[PARAM]
-            && skilldescMap[skillMap[PARAM].skilldesc]
-            && skilldescMap[skillMap[PARAM].skilldesc][`item proc descline count`]
-            && skilldescMap[skillMap[PARAM].skilldesc][`item proc descline count`] > 0) {
+        if (desc.prop
+            && desc.prop.Param
+            && skillMap[desc.prop.Param]
+            && skilldescMap[skillMap[desc.prop.Param].skilldesc]
+            && skilldescMap[skillMap[desc.prop.Param].skilldesc][`item proc descline count`]
+            && skilldescMap[skillMap[desc.prop.Param].skilldesc][`item proc descline count`] > 0) {
             descfunc = 0xFF;
         }
 
         switch (descfunc) {
             case 5: {
                 // #14 Dor `%+d%% 機率擊中使怪物逃跑`
-                local = local.replace(`%+d`, MIN * 100 / 128);
+                local = local.replace(`%+d`, desc.prop.Min * 100 / 128);
                 break;
             }
             case 11: {
-                local = local.replace(`%d`, 1).replace(`%d`, 100 / PARAM).replace(`%1`, 100 / PARAM).replace(`%0`, 1);
+                local = local.replace(`%d`, 1).replace(`%d`, 100 / desc.prop.Param).replace(`%1`, 100 / desc.prop.Param).replace(`%0`, 1);
                 break;
             }
             case 12: {
-                local = MIN > 1 ? [local, `+`, MIN].join(``) : local;
+                local = desc.prop.Min > 1 ? [local, `+`, desc.prop.Min].join(``) : local;
                 break;
             }
             case 13: {
-                local = LOCAL_MAP[EXCEL_CHARSTATS[VAL].StrAllSkills][LNG];
-                local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : [`+`, MIN].join(``));
+                local = LOCAL_MAP[EXCEL_CHARSTATS[desc.stat.val].StrAllSkills][LNG];
+                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``));
                 break;
             }
             case 14: {
-                const charIndex = parseInt(PARAM / 3);
-                const skillTabSerial = PARAM % 3 + 1;
+                const charIndex = parseInt(desc.prop.Param / 3);
+                const skillTabSerial = desc.prop.Param % 3 + 1;
                 const charstat = EXCEL_CHARSTATS[charIndex];
                 const key = charstat[`StrSkillTab${skillTabSerial}`];
                 const only = charstat[`StrClassOnly`];
                 local = LOCAL_MAP[key][LNG] + `<span class="only-span">` + LOCAL_MAP[only][LNG] + `</span>`;
-                local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : [`+`, MIN].join(``));
+                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``));
                 break;
             }
             case 15: {
-                local = local.replace(`%d`, MIN)
-                    .replace(`%d`, MAX)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
+                local = local.replace(`%d`, desc.prop.Min)
+                    .replace(`%d`, desc.prop.Max)
+                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
                 break;
             }
             case 16: {
-                local = local.replace(`%d`, MIN < MAX ? [`<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : MIN)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
+                local = local.replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min)
+                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
                 break;
             }
             case 17: {
-                local = local.replace(`%+d`, `+` + (MIN / PERLEVEL));
+                local = local.replace(`%+d`, `+` + (desc.prop.Min / PERLEVEL));
                 break;
             }
             case 19: {
-                if (CODE.includes(`/lvl`)) {
-                    if (PARAM) {
-                        local = local.replace(`%+d`, [`+`, PARAM / PERLEVEL].join(``))
-                            .replace(`%d`, [PARAM / PERLEVEL].join(``));
+                if (desc.prop.Code.includes(`/lvl`)) {
+                    if (desc.prop.Param) {
+                        local = local.replace(`%+d`, [`+`, desc.prop.Param / PERLEVEL].join(``))
+                            .replace(`%d`, [desc.prop.Param / PERLEVEL].join(``));
                     } else {
-                        local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN / PERLEVEL, `-`, MAX / PERLEVEL, `</span>`].join(``) : [`+`, MIN / PERLEVEL].join(``))
-                            .replace(`%d`, MIN < MAX ? [`<span class="range-span">`, MIN / PERLEVEL, `-`, MAX / PERLEVEL, `</span>`].join(``) : MIN / PERLEVEL);
+                        local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min / PERLEVEL, `-`, desc.prop.Max / PERLEVEL, `</span>`].join(``) : [`+`, desc.prop.Min / PERLEVEL].join(``))
+                            .replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min / PERLEVEL, `-`, desc.prop.Max / PERLEVEL, `</span>`].join(``) : desc.prop.Min / PERLEVEL);
                     }
                 } else {
-                    local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : [`+`, MIN].join(``))
-                        .replace(`%d`, MIN < MAX ? [`<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : MIN);
+                    local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
+                        .replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min);
                 }
                 break;
             }
             case 23: {//Faith reanimate
-                local = local.replace(`%0`, MIN < MAX ? [`<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : MIN)
-                    .replace(`%1`, LOCAL_MAP[EXCEL_MONSTATS[PARAM].NameStr][LNG]);
+                local = local.replace(`%0`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min)
+                    .replace(`%1`, LOCAL_MAP[EXCEL_MONSTATS[desc.prop.Param].NameStr][LNG]);
                 break;
             }
             case 24: {
-                local = local.replace(`%d`, MAX)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], `</span>`].join(``))
-                    .replace(`%d/%d`, MIN);
+                local = local.replace(`%d`, desc.prop.Max)
+                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``))
+                    .replace(`%d/%d`, desc.prop.Min);
                 break;
             }
             case 27: {
-                const skill = skillMap[PARAM];
+                const skill = skillMap[desc.prop.Param];
                 const skilldesc = skilldescMap[skill.skilldesc];
                 const strName = skilldesc[`str name`];
 
                 const playstat = CHAR_MAP[skill.charclass]
                 const only = playstat.StrClassOnly;
 
-                local = local.replace(`%+d`, [`+`, MIN].join(``))
+                local = local.replace(`%+d`, [`+`, desc.prop.Min].join(``))
                     .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[strName][LNG], `</span>`].join(``))
                     .replace(`%s`, [`<span class="only-span">`, LOCAL_MAP[only][LNG], `</span>`].join(``));
 
                 break;
             }
             case 28: {
-                local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : [`+`, MIN].join(``))
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${PARAM}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
+                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
+                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
                 break;
             }
             case 29: {
-                local = local.replace(`%d`, MIN < MAX ? [`<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : MIN);
+                local = local.replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min);
                 break;
             }
             /** 自定义区 **/
             case 0xF1: {//所有属性/抗性
-                local = local.replace(`%+d`, MIN < MAX ? [`+`, `<span class="range-span">`, MIN, `-`, MAX, `</span>`].join(``) : [`+`, MIN].join(``))
+                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
                 break;
             }
             case 0xF2: {//毒伤
-                local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)*PARAM/256))
-                    .replace(`%d`, PARAM / FRAMES);
+                let MIN = (desc.min.prop.Min+desc.min.prop.Min)/2;
+                let MAX = (desc.max.prop.Max+desc.max.prop.Max)/2;
+                let LEN = ((desc.len.prop.Param||desc.len.prop.Min)+(desc.len.prop.Param||desc.len.prop.Max))/2;
+                let SEC = LEN / FRAMES;
+
+                if(MIN === MAX){
+                    local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)/2*LEN/256)).replace("%d", SEC);
+                } else {
+                    local = local.replace(`%d`, Math.round(MIN*LEN/256)).replace(`%d`, Math.round(MAX*LEN/256)).replace("%d", SEC);
+                }
                 break;
             }
             case 0xF3: {//电/冰/火/魔伤
-                local = local.replace(`%d`, MIN).replace(`%d`, MAX);
+                local = local.replace(`%d`, desc.prop.Min).replace(`%d`, desc.prop.Max);
                 break;
             }
             case 0xFF: {//依赖descline渲染
 
-                const skill = skillMap[`${PARAM}`];
+                const skill = skillMap[`${desc.prop.Param}`];
                 const skilldesc = skilldescMap[skill.skilldesc];
                 const key = skilldesc[`item proc text`];
                 let count = skilldesc[`item proc descline count`];

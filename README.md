@@ -1,5 +1,15 @@
-# D2R_Runeword
+暗黑破坏神II:重制版 资料页
 Diablo II: Resurrected Info Query HTML Project
+
+特色1: 符文之语页,底材支持向上兼容 eg.长矛包括(长矛+近战武器+武器) 弓/弩包括(弓/弩+武器)
+特色2: 暗金物品页,包含升级后的需求
+
+在线版地址 https://jcymeow.github.io/D2R_Info/index.html
+git仓库 https://github.com/jcymeow/D2R_Info
+
+2025/5/31 v0.9.7
+	修正 符文之语页&暗金页 毒伤公式
+	修正 符文之语页&暗金页 公共数据
 
 2025/5/30 v0.9.6
 	项目名称变更,添加暗金物品页
@@ -16,8 +26,7 @@ Diablo II: Resurrected Info Query HTML Project
 2025/5/25 发布0.9.3版
 	修改主页名称 index.html
 	提交到github
-	仓库地址 https://github.com/jcymeow/D2R_Runeword
-	Pages地址 https://jcymeow.github.io/D2R_Runeword/
+
 
 2025/5/25 发布0.9.2版
 	修正 金币/魔法掉落(依角色等级)显示问题        
