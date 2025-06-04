@@ -4,17 +4,7 @@
  * @date 2025-5-22
  */
 
-let LNG = '';
-let uniqueitems = [];
-let propertyMap = {};
-let skillMap = {};
-let skilldescMap = {}
-let gemMap = {};
-
-const LOCAL_MAP = {};
-const MISC_MAP = {};
-const CHAR_MAP = {};
-const DESC_MAP = {};
+let UNIQUEITEMS = [];
 
 function loaded() {
     loadLNG();
@@ -36,7 +26,7 @@ function loaded() {
             radio.checked = false;
         });
 
-        filter();
+        //filter();
     });
 
     //change to query
@@ -74,194 +64,123 @@ function loaded() {
         button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
     });
 
-    //charstats.js remove Expansion
-    EXCEL_CHARSTATS.splice(5, 1);
-
-    //playerclass.js remove Expansion
-    EXCEL_PLAYERCLASS.splice(5, 1);
-
     init();
-    filter();
+    //filter();
 }
 
 function init() {
 
-    /** I18n **/
-    COMPONENTS.forEach(item => {
-        const ele = document.getElementById(item.id);
-        if(ele){
-            const radio = ele.querySelector(`input[type="radio"]`);
-            ele[item.key] = item[LNG];
-            if(radio)ele.prepend(radio);
-        }
-    });
+    common();
 
-    // init LOCAL_MAP [item-modifiers.js, item-names.js, item-runes.js, monsters.js, skills.js, d2r_ext.js]
-    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...ITEM_MODIFIERS_EXT]) {
-        LOCAL_MAP[item.Key] = item;
-    }
+    /** 暗金物品 */
+    UNIQUEITEMS = clone(EXCEL_UNIQUEITEMS);
+    UNIQUEITEMS = UNIQUEITEMS.filter(item => { return !UNIQUEITEMS_TO_DELETE.includes(item.index) && item.enabled !== 0});
+    for (let uniqueitem of UNIQUEITEMS) {
+        // 名称(显示/查询)
+        const local = LOCAL_MAP[uniqueitem.index];
+        uniqueitem.VIEWNAME = [local.enUS.toUpperCase(), local.zhCN, local.zhTW].join(" ");
 
-    // init MISC_MAP
-    for (const item of EXCEL_ARMOR) {
-        MISC_MAP[item.code] = item;
-        MISC_MAP[item.code].category = 'ARMOR';
-    }
-    for (const item of EXCEL_WEAPONS) {
-        MISC_MAP[item.code] = item;
-        MISC_MAP[item.code].category = 'WEAPON';
-    }
-    for (const item of EXCEL_MISC) {
-        MISC_MAP[item.code] = item;
-        MISC_MAP[item.code].category = 'MISC';
-    }
-
-    // init CHAR_MAP Key(0/ama/Amazon...) 
-    for (let index = 0; index < EXCEL_CHARSTATS.length; index++) {
-        const charstat = EXCEL_CHARSTATS[index];
-        CHAR_MAP[charstat.class] = charstat;
-        CHAR_MAP[EXCEL_PLAYERCLASS[index].Code] = charstat;
-        CHAR_MAP[index] = charstat;
-    }
-
-    //技能(id/skill/小写连拼/skilldesc 4映射)
-    for (const item of EXCEL_SKILLS) {
-        skillMap[item.skill] = item;
-        skillMap[item[`*Id`]] = item;
-        skillMap[normalizeSkillName(item.skill)] = item;
-        skillMap[item.skilldesc] = item;
-    }
-
-    //技能描述
-    for (const item of EXCEL_SKILLDESC) {
-        skilldescMap[item.skilldesc] = item;
-    }
-    
-    // init DESC_MAP
-    for (const item of [...EXCEL_ITEMSTATCOST, ...ITEMSTATCOST_EXT]) {
-        let obj = clone(item);
-        DESC_MAP[obj.Stat] = obj;
-    }
-
-    //属性
-    for (const item of [...EXCEL_PROPERTIES, ...PROPERTIES_EXT]) {
-        let obj = clone(item);
-        obj.stats = [];
-        let i = 1;
-        while (obj[`stat${i}`]) {
-            obj.stats.push({
-                "stat": obj[`stat${i}`],
-                "func": obj[`func${i}`],
-                "set": obj[`set${i}`],
-                "val": obj[`val${i}`]
-            });
-            i++;
-        }
-        propertyMap[obj.code] = obj;
-    }
-
-    //暗金道具
-    uniqueitems = JSON.parse(JSON.stringify(EXCEL_UNIQUEITEMS));
-    //剔除元素
-    uniqueitems = uniqueitems.filter(item => { return !UNIQUEITEMS_TO_DELETE.includes(item.index) });
-
-    for (let uniqueitem of uniqueitems) {
-        //名称(显示/查询)
-        const vName = LOCAL_MAP[uniqueitem.index];
-        uniqueitem.viewName = [vName.enUS.toUpperCase(), vName.zhCN, vName.zhTW].join(" ");
-
-        //tier
+        // 装备层级(Normal//Elite)
         const misc = MISC_MAP[uniqueitem.code];
-        uniqueitem.tier = null;
-        if (misc.code === misc.normcode) uniqueitem.tier = 0;
-        if (misc.code === misc.ubercode) uniqueitem.tier = 1;
-        if (misc.code === misc.ultracode) uniqueitem.tier = 2;
-        uniqueitem.category = misc.category;
+        uniqueitem.TIER = null;
+        if (misc.code === misc.normcode) uniqueitem.TIER = 0;
+        if (misc.code === misc.ubercode) uniqueitem.TIER = 1;
+        if (misc.code === misc.ultracode) uniqueitem.TIER = 2;
+        // 装备类型(MISC/WEAPON/ARMOR)
+        uniqueitem.CATEGORY = misc.CATEGORY;
 
-        //uniqueitems.js prop/par/min/max 1-12
-        uniqueitem.params = [];
-        let i = 1;
-        while (uniqueitem[`prop${i}`]) {
-            uniqueitem.params.push({
-                "Code": uniqueitem[`prop${i}`],
-                "Param": uniqueitem[`par${i}`],
-                "Min": uniqueitem[`min${i}`],
-                "Max": uniqueitem[`max${i}`]
-            });
-            i++;
+        uniqueitem.CODES = [];
+        for (let index = 1; index <= CONSTANTS.UNIQUEITEMS_PROPS_LENGTH; index++) {
+            const CODE = {
+                "CODE": uniqueitem[`prop${index}`],
+                "PARAM": uniqueitem[`par${index}`],
+                "MIN": uniqueitem[`min${index}`],
+                "MAX": uniqueitem[`max${index}`]
+            }
+            if (CODE.CODE) uniqueitem.CODES.push(CODE);
         }
 
-        uniqueitem.descs = [];
-        for (const param of uniqueitem.params) {
-            //properties.js 
-            let property = propertyMap[param.Code];
+        uniqueitem.ITEMSTATCOSTS = [];
+        for (const code of uniqueitem.CODES) {
+            let property = PROPERTY_MAP[code.CODE];
             if (!property) continue;
-            property = clone(property);
-            for (const stat of property.stats) {
-                //itemstatcost.js
-                let desc = DESC_MAP[stat.stat];
-                if (!desc) continue;
-                desc = clone(desc);
-                desc.stat = stat;
-                desc.param = param;
-                uniqueitem.descs.push(desc);
+            property = clone(property)
+            for (const stat of property.STATS) {
+                const itemstatcost = clone(ITEMSTATCOST_MAP[stat.STAT]);
+                if (!itemstatcost) continue;
+                itemstatcost.STAT = clone(stat);
+                itemstatcost.CODE = clone(code);
+                uniqueitem.ITEMSTATCOSTS.push(itemstatcost);
             }
         }
 
-        /**
-         * STAT_GROUP => 全属性/全抗
-         **/
+        let itemstatcosts = uniqueitem.ITEMSTATCOSTS.map(itemstatcost => itemstatcost.STAT.STAT)
+
+        // STAT_GROUP => 全属性/全抗
         for (const item of STAT_GROUP) {
             const io = clone(item);
-            const includesAll = io.in.every(input => uniqueitem.descs.map(desc => desc.Stat).includes(input));
+            const includesAll = io.in.every(input => itemstatcosts.includes(input));
             if (includesAll) {
-                const selDescs = uniqueitem.descs.filter(desc => io.in.includes(desc.Stat));
-                const alignment = selDescs.every(desc => desc.param.Min === selDescs[0].param.Min);
-                if (alignment) {
-                    const first = selDescs[0];
-                    io.out.param = first.param;
-                    io.out.stat = first.stat;
+                const subItemStatCost = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => io.in.includes(itemstatcost.Stat));
+                const equals = subItemStatCost.every(itemstatcost => itemstatcost.CODE.MIN === subItemStatCost[0].CODE.MIN);
+                if (equals) {
+                    const first = subItemStatCost[0];
+                    io.out.CODE = first.CODE;
+                    io.out.STAT = first.STAT;
                     io.out.descpriority = first.descpriority;
-                    uniqueitem.descs.removeAll(selDescs);
-                    uniqueitem.descs.push(io.out);
+                    uniqueitem.ITEMSTATCOSTS.removeAll(subItemStatCost);
+                    uniqueitem.ITEMSTATCOSTS.push(io.out);
                 }
             }
         }
 
-        /**
-         * RANGE_GROUP => 大小伤
-         **/
+        // RANGE_GROUP => 大小伤
         for (const item of RANGE_GROUP) {
             const io = clone(item);
-            const includesAll = io.in.every(input => uniqueitem.descs.map(desc => desc.Stat).includes(input));
+            const includesAll = io.in.every(input => itemstatcosts.includes(input));
             if (includesAll) {
-                let minObj = uniqueitem.descs.filter(desc => desc.Stat === io.in[0])[0];
-                let maxObj = uniqueitem.descs.filter(desc => desc.Stat === io.in[1])[0];
-                let lenObj = uniqueitem.descs.filter(desc => desc.Stat === io.in[2])[0];
-                
-                let newDesc = io.out;
-                newDesc.min = minObj;
-                newDesc.max = maxObj;
-                if(lenObj)newDesc.len = lenObj;
-                newDesc.descpriority = minObj.descpriority;
-                
-                const selDescs = uniqueitem.descs.filter(desc => io.in.includes(desc.Stat));
-                uniqueitem.descs.removeAll(selDescs);
-                uniqueitem.descs.push(newDesc);
+                let minObj = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => itemstatcost.Stat === io.in[0])[0];
+                let maxObj = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => itemstatcost.Stat === io.in[1])[0];
+                let lenObj = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => itemstatcost.Stat === io.in[2])[0];
+
+                let newItemStatCost = io.out;
+                newItemStatCost.MIN = minObj;
+                newItemStatCost.MAX = maxObj;
+                newItemStatCost.CODE = minObj.CODE;
+                newItemStatCost.STAT = minObj.STAT;
+                if (lenObj) newItemStatCost.LEN = lenObj;
+                newItemStatCost.descpriority = minObj.descpriority;
+
+                //物理伤害:小伤>=大伤,则不合并
+                if (0xF008 === newItemStatCost[`*ID`] && minObj.CODE.MAX >= maxObj.CODE.MIN) continue;
+
+                const subItemStatCost = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => io.in.includes(itemstatcost.Stat));
+                uniqueitem.ITEMSTATCOSTS.removeAll(subItemStatCost);
+                uniqueitem.ITEMSTATCOSTS.push(newItemStatCost);
             }
         }
         //属性词条排序
-        uniqueitem.descs.sort((a, b) => {
+        uniqueitem.ITEMSTATCOSTS.sort((a, b) => {
             //1.itemstatcost.js descpriority DESC
             if (b.descpriority != a.descpriority) {
                 return b.descpriority - a.descpriority;
+            }
+            //2.itemstatcost.js *ID DESC
+            if (b[`*ID`] != a[`*ID`]) {
+                return b[`*ID`] - a[`*ID`];
+            }
+            //3.skills.js *Id DESC
+            if (SKILL_MAP[b.CODE.PARAM] && SKILL_MAP[a.CODE.PARAM]) {
+                if (SKILL_MAP[b.CODE.PARAM][`*Id`] != SKILL_MAP[a.CODE.PARAM][`*Id`]) {
+                    return SKILL_MAP[b.CODE.PARAM][`*Id`] - SKILL_MAP[a.CODE.PARAM][`*Id`]
+                }
             }
             return -1;
         });
 
     }
-
-    //暗金物品排序 需求等级 ASC
-    uniqueitems.sort((a, b) => a[`lvl req`] - b[`lvl req`]);
+    // 需求等级 ASC
+    UNIQUEITEMS.sort((a, b) => a[`lvl req`] - b[`lvl req`]);
 }
 
 // 过滤符合条件的符文之语
@@ -275,11 +194,11 @@ function filter() {
         tier: document.getElementById('searchForm').querySelector('input[name="tier"]:checked')?.value || ''
     };
 
-    for (const uniqueitem of uniqueitems) {
+    for (const uniqueitem of UNIQUEITEMS) {
         
         if (formData.keyword !== '') {
             var value = formData.keyword.toUpperCase();
-            if (!uniqueitem.viewName.includes(value)) {
+            if (!uniqueitem.VIEWNAME.includes(value)) {
                 continue;
             }
         }
@@ -290,7 +209,7 @@ function filter() {
         }
         
         if (formData.tier !== ''){
-            if(uniqueitem.tier != formData.tier) continue;
+            if(uniqueitem.TIER != formData.tier) continue;
         }
         
         sel.push(uniqueitem);
@@ -305,7 +224,7 @@ function result(array) {
     //clear
     result.innerHTML = '';
 
-    /** result div */
+    //count
     const countDiv = document.createElement('div');
     countDiv.className = 'styled-box';
     countDiv.append([LOGIC.COUNT_PREFIX[LNG], array.length, LOGIC.COUNT_SUFFIX[LNG]].join(" "));
@@ -313,6 +232,7 @@ function result(array) {
 
     //list
     for (const uniqueitem of array) {
+        const id = uniqueitem[`*ID`];
         // container
         const container = document.createElement('div');
         container.className = 'styled-box';
@@ -320,7 +240,13 @@ function result(array) {
         // container name 
         const nameDiv = document.createElement('div');
         nameDiv.className = 'name-box';
-        nameDiv.append(uniqueitem.viewName);
+        nameDiv.append(id+". ");
+        nameDiv.append(uniqueitem.VIEWNAME);
+
+        // container image
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'image-box';
+        imageDiv.innerHTML = `<img src="image/${id}.jpg" onerror="this.src='image/NONE.png'" />`;
 
         // contianer x
         const xDiv = document.createElement('div');
@@ -328,13 +254,19 @@ function result(array) {
 
         //是否包含需求变化
         let ease = 1;
-        const easeArray = uniqueitem.descs.filter(desc => desc.Stat === `item_req_percent`);
+        const easeArray = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => itemstatcost.Stat === `item_req_percent`);
         if(easeArray && easeArray.length > 0){
-            ease = ease + easeArray[0].param.Min/100;
+            ease = ease + easeArray[0].CODE.MIN/100;
+        }
+        //是否无形
+        let eth = 0;
+        const ethArray = uniqueitem.ITEMSTATCOSTS.filter(itemstatcost => itemstatcost.Stat === `item_ethereal`);
+        if(ethArray && ethArray.length > 0){
+            eth = -10;
         }
 
         //底材属性
-        switch (uniqueitem.category) {
+        switch (uniqueitem.CATEGORY) {
             case "MISC": {
                 let contents = [];
 
@@ -351,7 +283,7 @@ function result(array) {
                 let base = MISC_MAP[uniqueitem.code];
                 const bases = [MISC_MAP[base.normcode], MISC_MAP[base.ubercode], MISC_MAP[base.ultracode]];
 
-                for (let index = uniqueitem.tier; index < 3; index++) {
+                for (let index = uniqueitem.TIER; index < 3; index++) {
                     let contents = [];
 
                     base = bases[index];
@@ -359,16 +291,16 @@ function result(array) {
 
                     //需求等级
                     let reqLvl = 0;
-                    if (uniqueitem.tier === index) {
+                    if (uniqueitem.TIER === index) {
                         // 原装需求等级
                         reqLvl = uniqueitem[`lvl req`];
                     } else {
                         // 升级需求等级 = max(原装需求等级 || 底材需求等级+修正)
-                        reqLvl = Math.max(uniqueitem[`lvl req`], (base.levelreq || 0) + ITEM_TIERS[uniqueitem.tier].offset[index]);
+                        reqLvl = Math.max(uniqueitem[`lvl req`], (base.levelreq || 0) + ITEM_TIERS[uniqueitem.TIER].offset[index]);
                     }
                     contents.push(LOGIC.REQLVL[LNG] + (reqLvl || `-`));
-                    //需求力量
-                    let reqstr = (base.reqstr || 0) * ease;
+                    //需求力量:Math.floor(((基础需求+无形) < 0 ? 0 : (基础需求+无形)) * (1+(需求变化/100)))
+                    let reqstr = Math.floor((((base.reqstr) || 0) + eth) < 0 ? 0 : (((base.reqstr) || 0) + eth) * ease)
                     contents.push(LOGIC.REQSTR[LNG] + (reqstr || "-"));
                     //耐久
                     contents.push(LOGIC.DURABILITY[LNG] + base.durability);
@@ -384,26 +316,26 @@ function result(array) {
                 let base = MISC_MAP[uniqueitem.code];
                 const bases = [MISC_MAP[base.normcode], MISC_MAP[base.ubercode], MISC_MAP[base.ultracode]];
 
-                for (let index = uniqueitem.tier; index < 3; index++) {
+                for (let index = uniqueitem.TIER; index < 3; index++) {
                     let contents = [];
 
                     base = bases[index];
                     contents.push(LOCAL_MAP[base.code][LNG] + ` ` + ITEM_TIERS[index][LNG]);
                     //需求等级
                     let reqLvl = 0;
-                    if (uniqueitem.tier === index) {
-                        // 原装需求等级
-                        reqLvl = uniqueitem[`lvl req`];
+                    if (uniqueitem.TIER === index) {
+                        // 原装需求等级 = max(原装需求等级 || 底材需求等级)
+                        reqLvl = Math.max(uniqueitem[`lvl req`], (base.levelreq || 0));
                     } else {
                         // 升级需求等级 = max(原装需求等级 || 底材需求等级+修正)
-                        reqLvl = Math.max(uniqueitem[`lvl req`], (base.levelreq || 0) + ITEM_TIERS[uniqueitem.tier].offset[index]);
+                        reqLvl = Math.max(uniqueitem[`lvl req`], (base.levelreq || 0) + ITEM_TIERS[uniqueitem.TIER].offset[index]);
                     }
                     contents.push(LOGIC.REQLVL[LNG] + (reqLvl || `-`));
-                    //需求力量
-                    let reqstr = (base.reqstr || 0) * ease;
+                    //需求力量:Math.floor(((基础需求+无形) < 0 ? 0 : (基础需求+无形)) * (1+(需求变化/100)))
+                    let reqstr = Math.floor((((base.reqstr) || 0) + eth) < 0 ? 0 : (((base.reqstr) || 0) + eth) * ease)
                     contents.push(LOGIC.REQSTR[LNG] + (reqstr || "-"));
-                    //需求敏捷
-                    let reqdex = (base.reqdex || 0) * ease;
+                    //需求敏捷:Math.floor(((基础需求+无形) < 0 ? 0 : (基础需求+无形)) * (1+(需求变化/100)))
+                    let reqdex = Math.floor((((base.reqdex) || 0) + eth) < 0 ? 0 : (((base.reqdex) || 0) + eth) * ease)
                     contents.push(LOGIC.REQDEX[LNG] + (reqdex || "-"));
                     //耐久
                     contents.push(LOGIC.DURABILITY[LNG] + base.durability);
@@ -422,6 +354,7 @@ function result(array) {
         // contianer prop
         const propDiv = local(uniqueitem);
         container.appendChild(nameDiv);
+        container.appendChild(imageDiv);
         container.appendChild(xDiv);
         container.appendChild(propDiv);
         result.appendChild(container);
@@ -438,174 +371,20 @@ function local(uniqueitem) {
     let propDiv = document.createElement('div');
     propDiv.className = 'prop-box';
 
-    for (const desc of uniqueitem.descs) {
+    for (const itemstatcost of uniqueitem.ITEMSTATCOSTS) {
         //无本地化不渲染
-        let descstr = desc.descstrpos;
-        if(desc.param && desc.param.Min && desc.param.Min < 0){
-            descstr = desc.descstrneg;
+        let descstr = itemstatcost.descstrpos;
+        if(itemstatcost.CODE && itemstatcost.CODE.MIN && itemstatcost.CODE.MIN < 0){
+            descstr = itemstatcost.descstrneg;
         }
         let local = LOCAL_MAP[descstr];
         if(!local)continue;
         local = local[LNG];
 
-        switch (desc.descfunc) {
-            case 5: {
-                // #14 Dor "%+d%% 機率擊中使怪物逃跑"
-                local = local.replace("%+d", desc.param.Min * 100 / 128);
-                break;
-            }
-            case 11: {
-                // "每秒修復 %d 耐久度"
-                local = local.replace("%d", 100 / desc.param.Param);
-                break;
-            }
-            case 12: {
-                local = desc.param.Min > 1 ? [local, "+", desc.param.Min].join("") : local;
-                break;
-            }
-            case 13: {
-                if (desc.param.Code === `randclassskill`) {
-                    local = local.replace(`%+d`, `+${desc.stat.val}`);
-                } else {
-                    local = LOCAL_MAP[EXCEL_CHARSTATS[desc.stat.val].StrAllSkills][LNG];
-                    local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""));
-                }
-                break;
-            }
-            case 14: {
-                const charIndex = parseInt(desc.param.Param / 3);
-                const skillTabSerial = desc.param.Param % 3 + 1;
-                const charstat = EXCEL_CHARSTATS[charIndex];
-                const key = charstat[`StrSkillTab${skillTabSerial}`];
-                const only = charstat["StrClassOnly"];
-                local = LOCAL_MAP[key][LNG] + "<span class='only-span'>" + LOCAL_MAP[only][LNG] + "</span>";
-                local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""));
-                break;
-            }
-            case 15: {
-                local = local.replace("%d", desc.param.Min)
-                    .replace("%d", desc.param.Max)
-                    .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${desc.param.Param}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
-                break;
-            }
-            case 16: {
-                local = local.replace("%d", desc.param.Min < desc.param.Max ? ["<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : desc.param.Min)
-                    .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${desc.param.Param}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
-                break;
-            }
-            case 17: {
-                local = local.replace("%+d", "+" + (desc.param.Min / PERLEVEL));
-                break;
-            }
-            case 19: {
-                if (desc.param.Code.includes("/lvl")) {
-                    if (desc.param.Param) {
-                        local = local.replace("%+d", ["+", desc.param.Param / PERLEVEL].join(""))
-                            .replace("%d", [desc.param.Param / PERLEVEL].join(""));
-                    } else {
-                        local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min / PERLEVEL, "-", desc.param.Max / PERLEVEL, "</span>"].join("") : ["+", desc.param.Min / PERLEVEL].join(""))
-                            .replace("%d", desc.param.Min < desc.param.Max ? ["<span class='range-span'>", desc.param.Min / PERLEVEL, "-", desc.param.Max / PERLEVEL, "</span>"].join("") : desc.param.Min / PERLEVEL);
-                    }
-                } else {
-                    local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""))
-                        .replace("%d", desc.param.Min < desc.param.Max ? ["<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : desc.param.Min);
-                }
-                break;
-            }
-            case 23: {//Faith reanimate
-                local = local.replace("%0", desc.param.Min < desc.param.Max ? ["<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : desc.param.Min)
-                    .replace("%1", LOCAL_MAP[EXCEL_MONSTATS[desc.param.Param].NameStr][LNG]);
-                break;
-            }
-            case 24: {
-                local = local.replace("%d", desc.param.Max)
-                    .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${desc.param.Param}`].skilldesc][`str name`]][LNG], "</span>"].join(""))
-                    .replace("%d/%d", desc.param.Min);
-                break;
-            }
-            case 27: {
-                if(desc.param.Code === 'skill'){
-                    const skill = skillMap[desc.param.Param];
-                    const skilldesc = skilldescMap[skill.skilldesc];
-                    const strName = skilldesc[`str name`];
-    
-                    const playstat = CHAR_MAP[skill.charclass];
-                    const only = playstat.StrClassOnly;
-    
-                    local = local.replace("%+d", ["+", desc.param.Min].join(""))
-                        .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[strName][LNG], "</span>"].join(""))
-                        .replace("%s", ["<span class='only-span'>", LOCAL_MAP[only][LNG], "</span>"].join(""));
-                }
-                if(desc.param.Code === 'skill-rand'){
-                    //ormus
-                    let skills = [];
-                    for (let index = 61; index <= 65; index++) {
-                        const skill = skillMap[index];
-                        const skilldesc = skilldescMap[skill.skilldesc];
-                        const strName = skilldesc[`str name`];
-                        skills.push(LOCAL_MAP[strName][LNG]);
-                    }
+        local = format(local, itemstatcost);
 
-                    local = LOCAL_MAP[`ModStrF000`][LNG];
-                    local = local.replace("%+d", ["+", desc.param.Param].join(""))
-                        .replace("%s", skills.join("/"));
-                }
-                break;
-            }
-            case 28: {
-                local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""))
-                    .replace("%s", ["<span class='skill-span'>", LOCAL_MAP[skilldescMap[skillMap[`${desc.param.Param}`].skilldesc][`str name`]][LNG], "</span>"].join(""));
-                break;
-            }
-            case 29: {
-                local = local.replace("%d", desc.param.Min < desc.param.Max ? ["<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : desc.param.Min);
-                break;
-            }
-            /** 自定义区 **/
-            case 0xF1: {//所有属性/抗性
-                local = local.replace("%+d", desc.param.Min < desc.param.Max ? ["+", "<span class='range-span'>", desc.param.Min, "-", desc.param.Max, "</span>"].join("") : ["+", desc.param.Min].join(""))
-                break;
-            }
-            case 0xF2: {//毒伤
-                let MIN = (desc.min.param.Min+desc.min.param.Min)/2;
-                let MAX = (desc.max.param.Max+desc.max.param.Max)/2;
-                let LEN = ((desc.len.param.Param||desc.len.param.Min)+(desc.len.param.Param||desc.len.param.Max))/2;
-                let SEC = LEN / FRAMES;
+        propDiv.innerHTML += local + "<BR>";
 
-                if(MIN === MAX){
-                    local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)/2*LEN/256)).replace("%d", SEC);
-                } else {
-                    local = local.replace(`%d`, Math.round(MIN*LEN/256)).replace(`%d`, Math.round(MAX*LEN/256)).replace("%d", SEC);
-                }
-                break;
-            }
-            case 0xF3: {//电/冰/火/魔伤
-                let MINMIN = desc.min.param.Min;
-                let MINMAX = desc.min.param.Max;
-                let MAXMIN = desc.max.param.Min;
-                let MAXMAX = desc.max.param.Max;
-                if (desc.min.param.Code === desc.max.param.Code) {
-                    local = local.replace(`%d`, MINMIN).replace(`%d`, MAXMAX);
-                } else {
-                    local = local.replace(`%d`, MINMIN === MINMAX ? MINMIN : ["(<span class='range-span'>", MINMIN, "-", MINMAX, "</span>)"].join(""))
-                        .replace(`%d`, MAXMIN === MAXMAX ? MAXMIN : ["(<span class='range-span'>", MAXMIN, "-", MAXMAX, "</span>)"].join(""));
-                }
-                break;
-            }
-            default:
-                console.log(`desc.descfunc = ${descfunc} 未定义渲染方式`);
-                alert(`desc.descfunc = ${descfunc} 未定义渲染方式`);
-                break;
-        }
-
-        local = local.replace("%%", "%").replace("+-", "-");//.replace("-+","-");
-        if (local) {
-            propDiv.innerHTML += local;
-            if (desc.descstr2) {
-                propDiv.innerHTML += LOCAL_MAP[desc.descstr2][LNG];
-            }
-            propDiv.innerHTML += '<BR>';
-        }
     }
     return propDiv;
 }

@@ -4,18 +4,45 @@
  * @date 2025-5-22
  */
 
-//(计算等级成长时 /8)
-const PERLEVEL = 8;
-
-//每秒帧数(计算持续时间时 /25)
-const FRAMES = 25;
+const CONSTANTS = {
+    PROPERTIES_STATS_LENGTH: 7,
+    GEMS_CODES_LENGTH: 3,
+    UNIQUEITEMS_PROPS_LENGTH: 12,
+    RUNEWORDS_ITYPE_LENGTH: 6,
+    RUNEWORDS_RUNES_LENGTH: 6,
+    RUNEWORDS_PROPERTIES_LENGTH: 7,
+    PERLEVEL: 8,// (计算等级成长时 /8)
+    FRAMES: 25,// 每秒帧数(计算持续时间时 /25)
+}
 
 //装备类型
 const EQUIPMENT_TYPE = {
     WEAPON: "weapon",
     HELM: "helm",
-    SHIELD: "shield",
+    SHIELD: "shield"
 };
+
+const EQUIPMENT = {
+    "weap": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "武器", "zhTW": "武器", "enUS": "Weapon" }, "PARENT": null },
+    "mele": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "近战武器", "zhTW": "近戰武器", "enUS": "Melee Weapon" }, "PARENT": "weap" },
+    "helm": { "TYPE": EQUIPMENT_TYPE.HELM, "NAME": { "zhCN": "头盔", "zhTW": "頭盔", "enUS": "Helm" }, "PARENT": null },
+    "tors": { "TYPE": EQUIPMENT_TYPE.HELM, "NAME": { "zhCN": "护甲", "zhTW": "護甲", "enUS": "Armor" }, "PARENT": null },
+    "shld": { "TYPE": EQUIPMENT_TYPE.SHIELD, "NAME": { "zhCN": "盾牌", "zhTW": "盾牌", "enUS": "Shield" }, "PARENT": null },
+    "pala": { "TYPE": EQUIPMENT_TYPE.SHIELD, "NAME": { "zhCN": "圣骑专用盾", "zhTW": "聖騎盾", "enUS": "Paladin Shield" }, "PARENT": "shld" },
+    "miss": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "远程武器", "zhTW": "弓/弩/亚马逊弓", "enUS": "Missile Weapons" }, "PARENT": "weap" },
+    "swor": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "剑类", "zhTW": "刀劍", "enUS": "Swords" }, "PARENT": "mele" },
+    "knif": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "匕首", "zhTW": "匕首", "enUS": "Daggers" }, "PARENT": "mele" },
+    "mace": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "钉锤", "zhTW": "釘錘", "enUS": "Maces" }, "PARENT": "mele" },
+    "hamm": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "战锤", "zhTW": "重錘", "enUS": "Hammers" }, "PARENT": "mele" },
+    "axe": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "斧头", "zhTW": "斧", "enUS": "Axes" }, "PARENT": "mele" },
+    "club": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "短棒", "zhTW": "短棒", "enUS": "Clubs" }, "PARENT": "mele" },
+    "pole": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "长柄武器", "zhTW": "長柄武器", "enUS": "Polearms" }, "PARENT": "mele" },
+    "spea": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "标枪/亚马逊标枪", "zhTW": "長矛/亚马逊长矛", "enUS": "Spears/Amazon Javelins" }, "PARENT": "mele" },
+    "h2h": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "爪类/拳刃", "zhTW": "爪/拳刃", "enUS": "Claws/Katar" }, "PARENT": "mele" },
+    "scep": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "权杖", "zhTW": "權杖", "enUS": "Scepters" }, "PARENT": "mele" },
+    "wand": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "魔杖", "zhTW": "魔杖", "enUS": "Wands" }, "PARENT": "mele" },
+    "staf": { "TYPE": EQUIPMENT_TYPE.WEAPON, "NAME": { "zhCN": "法杖", "zhTW": "法杖", "enUS": "Staves" }, "PARENT": "mele" }
+}
 
 const ITEM_TIERS = [
     {
@@ -47,48 +74,29 @@ const UNIQUE_ITEMSTATCOST = [
 ];
 
 const UNIQUEITEMS_TO_DELETE = [
-    "Expansion",
+    "Amulet of the Viper",
     "Armor",
-    "Elite Uniques",
-    "Rings",
     "Class Specific",
-    "Staff of Kings",
-    "Gore Ripper",
-    "Zakarum's Salvation",
-    "Odium",
-    "Larzuk's Champion",
+    "Constricting Ring",
+    "Darkfear",
+    "Elite Uniques",
+    "Expansion",
     "Giantmaimer",
-    "Nethercrow",
-    "Warriv's Warder",
-    "Merman's Speed",
-    "Sigurd's Staunch",
-    "Horadric Staff",
+    "Gore Ripper",
     "Hell Forge Hammer",
+    "Horadric Staff",
     "KhalimFlail",
-    "SuperKhalimFlail"
+    "Larzuk's Champion",
+    "Merman's Speed",
+    "Nethercrow",
+    "Odium",
+    "Rings",
+    "Sigurd's Staunch",
+    "Staff of Kings",
+    "SuperKhalimFlail",
+    "Warriv's Warder",
+    "Zakarum's Salvation",
 ];
-
-const EQUIPMENT = {
-    "weap": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "武器", "zhTW": "武器", "enUS": "Weapon" }, "parent": null },
-    "mele": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "近战武器", "zhTW": "近戰武器", "enUS": "Melee Weapon" }, "parent": "weap" },
-    "helm": { "type": EQUIPMENT_TYPE.HELM, "name": { "zhCN": "头盔", "zhTW": "頭盔", "enUS": "Helm" }, "parent": null },
-    "tors": { "type": EQUIPMENT_TYPE.HELM, "name": { "zhCN": "护甲", "zhTW": "護甲", "enUS": "Armor" }, "parent": null },
-    "shld": { "type": EQUIPMENT_TYPE.SHIELD, "name": { "zhCN": "盾牌", "zhTW": "盾牌", "enUS": "Shield" }, "parent": null },
-    "pala": { "type": EQUIPMENT_TYPE.SHIELD, "name": { "zhCN": "圣骑专用盾", "zhTW": "聖騎盾", "enUS": "Paladin Shield" }, "parent": "shld" },
-    "miss": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "远程武器", "zhTW": "弓/弩/亚马逊弓", "enUS": "Missile Weapons" }, "parent": "weap" },
-    "swor": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "剑类", "zhTW": "刀劍", "enUS": "Swords" }, "parent": "mele" },
-    "knif": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "匕首", "zhTW": "匕首", "enUS": "Daggers" }, "parent": "mele" },
-    "mace": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "钉锤", "zhTW": "釘錘", "enUS": "Maces" }, "parent": "mele" },
-    "hamm": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "战锤", "zhTW": "重錘", "enUS": "Hammers" }, "parent": "mele" },
-    "axe": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "斧头", "zhTW": "斧", "enUS": "Axes" }, "parent": "mele" },
-    "club": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "短棒", "zhTW": "短棒", "enUS": "Clubs" }, "parent": "mele" },
-    "pole": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "长柄武器", "zhTW": "長柄武器", "enUS": "Polearms" }, "parent": "mele" },
-    "spea": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "标枪/亚马逊标枪", "zhTW": "長矛/亚马逊长矛", "enUS": "Spears / Amazon Javelins" }, "parent": "mele" },
-    "h2h": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "爪类/拳刃", "zhTW": "爪/拳刃", "enUS": "Claws / Katar" }, "parent": "mele" },
-    "scep": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "权杖", "zhTW": "權杖", "enUS": "Scepters" }, "parent": "mele" },
-    "wand": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "魔杖", "zhTW": "魔杖", "enUS": "Wands" }, "parent": "mele" },
-    "staf": { "type": EQUIPMENT_TYPE.WEAPON, "name": { "zhCN": "法杖", "zhTW": "法杖", "enUS": "Staves" }, "parent": "mele" }
-}
 
 const CODES = {
     /** armor */
@@ -132,6 +140,7 @@ const CODES = {
     "rin": ["rin"],
     "amu": ["amu"],
     "cm": ["cm1", "cm2", "cm3"],
+    "jew": ["jew"],
 
 };
 
@@ -290,11 +299,10 @@ const PROPERTIES_EXT = [
         "*eol": 0
     },
     {
-        //TODO: 仅"饥荒"符文组 具有该属性 且未在展示中看到对应翻译
         "code": "ethereal",
         "*Enabled": 1,
         "func1": 23,
-        "stat1": "",
+        "stat1": "item_ethereal",
         "set1": "",
         "val1": "",
         "func2": "",
@@ -532,6 +540,60 @@ const ITEMSTATCOST_EXT = [
         "advdisplay": "",
         "*eol": 0
     },
+    {
+        "Stat": "item_ethereal",
+        "*ID": 10084,
+        "Send Other": "",
+        "Signed": 1,
+        "Send Bits": 4,
+        "Send Param Bits": 3,
+        "UpdateAnimRate": "",
+        "Saved": "",
+        "CSvSigned": "",
+        "CSvBits": "",
+        "CSvParam": "",
+        "fCallback": 1,
+        "fMin": "",
+        "MinAccr": "",
+        "Encode": "",
+        "Add": 49523,
+        "Multiply": 1560,
+        "ValShift": "",
+        "1.09-Save Bits": 3,
+        "1.09-Save Add": 0,
+        "Save Bits": 3,
+        "Save Add": 0,
+        "Save Param Bits": 3,
+        "keepzero": "",
+        "op": "",
+        "op param": "",
+        "op base": "",
+        "op stat1": "",
+        "op stat2": "",
+        "op stat3": "",
+        "direct": "",
+        "maxstat": "",
+        "damagerelated": "",
+        "itemevent1": "",
+        "itemeventfunc1": "",
+        "itemevent2": "",
+        "itemeventfunc2": "",
+        "descpriority": 0,
+        "descfunc": 0xF0,
+        "descval": "",
+        "descstrpos": "strethereal",
+        "descstrneg": "strethereal",
+        "descstr2": "",
+        "dgrp": "",
+        "dgrpfunc": "",
+        "dgrpval": "",
+        "dgrpstrpos": "",
+        "dgrpstrneg": "",
+        "dgrpstr2": "",
+        "stuff": "",
+        "advdisplay": "",
+        "*eol": 0
+    },
 ];
 
 // item-modifiers.js 补档
@@ -557,40 +619,39 @@ const STAT_GROUP = [
     //all-res
     {
         in: ["fireresist", "lightresist", "coldresist", "poisonresist"],
-        out: { "Stat": "allresist", "*ID": "6A637901", "descstrpos": "strModAllResistances", "descstrneg": "strModAllResistances", "descfunc": 0xF1 }
+        out: { "Stat": "allresist", "*ID": 0xF001, "descstrpos": "strModAllResistances", "descstrneg": "strModAllResistances", "descfunc": 0xF1 }
     },
     //all-attr
     {
         in: ["strength", "energy", "dexterity", "vitality"],
-        out: { "Stat": "allattrib", "*ID": "6A637900", "descstrpos": "Moditem2allattrib", "descstrneg": "Moditem2allattrib", "descfunc": 0xF1 }
+        out: { "Stat": "allattrib", "*ID": 0xF002, "descstrpos": "Moditem2allattrib", "descstrneg": "Moditem2allattrib", "descfunc": 0xF1 }
     },
 ];
 
 const RANGE_GROUP = [
-    // poison-dmg 92
     {
         in: ["poisonmindam", "poisonmaxdam", "poisonlength"],
-        out: { "Stat": "poisondamage", "*ID": "6A637914", "descstrpos": "strModPoisonDamageRange", "descstrneg": "strModPoisonDamageRange", "descfunc": 0xF2 }
+        out: { "Stat": "poisondamage", "*ID": 0xF003, "descstrpos": "strModPoisonDamageRange", "descstrneg": "strModPoisonDamageRange", "descfunc": 0xF2 }
     },
-    // light-dmg 99
     {
         in: ["lightmindam", "lightmaxdam"],
-        out: { "Stat": "lightdamage", "*ID": "6A637912", "descstrpos": "strModLightningDamageRange", "descstrneg": "strModLightningDamageRange", "descfunc": 0xF3 }
+        out: { "Stat": "lightdamage", "*ID": 0xF004, "descstrpos": "strModLightningDamageRange", "descstrneg": "strModLightningDamageRange", "descfunc": 0xF3 }
     },
-    // cold-dmg 96
     {
-        in: ["coldmindam", "coldmaxdam"],
-        out: { "Stat": "colddamage", "*ID": "6A637913", "descstrpos": "strModColdDamageRange", "descstrneg": "strModColdDamageRange", "descfunc": 0xF3 }
+        in: ["coldmindam", "coldmaxdam", "coldlength"],
+        out: { "Stat": "colddamage", "*ID": 0xF005, "descstrpos": "strModColdDamageRange", "descstrneg": "strModColdDamageRange", "descfunc": 0xF3 }
     },
-    // fire-dmg 102
     {
         in: ["firemindam", "firemaxdam"],
-        out: { "Stat": "firedamage", "*ID": "6A637911", "descstrpos": "strModFireDamageRange", "descstrneg": "strModFireDamageRange", "descfunc": 0xF3 }
+        out: { "Stat": "firedamage", "*ID": 0xF006, "descstrpos": "strModFireDamageRange", "descstrneg": "strModFireDamageRange", "descfunc": 0xF3 }
     },
-    // magic-dmg 104
     {
         in: ["magicmindam", "magicmaxdam"],
-        out: { "Stat": "magicdamage", "*ID": "6A637910", "descstrpos": "strModMagicDamageRange", "descstrneg": "strModMagicDamageRange", "descfunc": 0xF3 }
+        out: { "Stat": "magicdamage", "*ID": 0xF007, "descstrpos": "strModMagicDamageRange", "descstrneg": "strModMagicDamageRange", "descfunc": 0xF3 }
+    },
+    {
+        in: ["mindamage", "maxdamage"],
+        out: { "Stat": "physicaldamage", "*ID": 0xF008, "descstrpos": "strModMinDamageRange", "descstrneg": "strModMinDamageRange", "descfunc": 0xF3 }
     },
 ];
 
@@ -906,8 +967,8 @@ const COMPONENTS = [
     {
         "id": "orb",
         "key": "innerText",
-        "zhCN": "巫师法球",
-        "zhTW": "魔法使法球",
+        "zhCN": "法珠",
+        "zhTW": "法珠",
         "enUS": "Sorceress Orb"
     },
     {
@@ -950,7 +1011,14 @@ const COMPONENTS = [
         "key": "innerText",
         "zhCN": "咒符",
         "zhTW": "咒符",
-        "enUS": "Charms"
+        "enUS": "Charm"
+    },
+    {
+        "id": "jew",
+        "key": "innerText",
+        "zhCN": "珠宝",
+        "zhTW": "珠寶",
+        "enUS": "Jewel"
     },
     {
         "id": "norm",
@@ -1078,6 +1146,17 @@ const LOGIC = {
     },
 };
 
+let LNG = '';
+const CHAR_MAP = {};
+const GEM_MAP = {};
+const ITEMSTATCOST_MAP = {};
+const LOCAL_MAP = {};
+const MISC_MAP = {};
+const PROPERTY_MAP = {};
+const SKILL_MAP = {};
+const SKILLDESC_MAP = {};
+
+
 function saveLNG(value) {
     LNG = value;
     saveData("LNG", value);
@@ -1085,4 +1164,348 @@ function saveLNG(value) {
 
 function loadLNG() {
     LNG = loadData("LNG") || LNG;
+    if(!LNG)saveLNG('zhTW');
+}
+
+function common() {
+    // 组件本地化
+    COMPONENTS.forEach(item => {
+        const ele = document.getElementById(item.id);
+        if (ele) {
+            const radio = ele.querySelector(`input[type="radio"]`);
+            ele[item.key] = item[LNG];
+            if (radio) ele.prepend(radio);
+        }
+    });
+    
+    // CHAR_MAP <0/Amazon/ama, object>
+    if(-1 !== EXCEL_CHARSTATS.findIndex(item => item.class === 'Expansion')){
+        EXCEL_CHARSTATS.splice(EXCEL_CHARSTATS.findIndex(item => item.class === 'Expansion'), 1);
+    }
+    if(-1 !== EXCEL_PLAYERCLASS.findIndex(item => item["Player Class"] === 'Expansion')){
+        EXCEL_PLAYERCLASS.splice(EXCEL_PLAYERCLASS.findIndex(item => item["Player Class"] === 'Expansion'), 1);
+    }
+    for (let index = 0; index < EXCEL_CHARSTATS.length; index++) {
+        const charstat = EXCEL_CHARSTATS[index];
+        if('Expansion' === charstat.class)continue;
+        CHAR_MAP[index] = charstat;
+        CHAR_MAP[charstat.class] = charstat;
+        CHAR_MAP[EXCEL_PLAYERCLASS[index].Code] = charstat;
+    }
+
+    // GEM_MAP
+    for (const item of EXCEL_GEMS) {
+        GEM_MAP[item.code] = item;
+
+        //rune
+        if (/^r\d{2}$/.test(item.code)) {
+            //IMAGE
+            item.IMAGE = `<img src="image/` + item.code + `.png" />`;
+            //WEAPON/HELM/SHIELD
+            for (const KEY in EQUIPMENT_TYPE) {
+                const key = EQUIPMENT_TYPE[KEY];
+                item[KEY] = [];
+                const gem = GEM_MAP[item.code];
+                for (let index = 1; index <= CONSTANTS.GEMS_CODES_LENGTH; index++) {
+                    const CODE = {
+                        "CODE": gem[`${key}Mod${index}Code`],
+                        "PARAM": gem[`${key}Mod${index}Param`],
+                        "MIN": gem[`${key}Mod${index}Min`],
+                        "MAX": gem[`${key}Mod${index}Max`]
+                    };
+                    if (CODE.CODE) item[KEY].push(CODE);
+                }
+            }
+        }
+    }
+
+    // LOCAL_MAP
+    for (const item of [...STRINGS_ITEM_MODIFIERS,
+        ...STRINGS_ITEM_NAMES,
+        ...STRINGS_ITEM_RUNES,
+        ...STRINGS_MONSTERS,
+        ...STRINGS_SKILLS,
+        ...ITEM_MODIFIERS_EXT]) {
+        LOCAL_MAP[item.Key] = item;
+    }
+
+    // MISC_MAP
+    for (const item of EXCEL_ARMOR) {
+        item.CATEGORY = 'ARMOR';
+        MISC_MAP[item.code] = item;
+    }
+    for (const item of EXCEL_WEAPONS) {
+        item.CATEGORY = 'WEAPON';
+        MISC_MAP[item.code] = item;
+    }
+    for (const item of EXCEL_MISC) {
+        item.CATEGORY = 'MISC';
+        MISC_MAP[item.code] = item;
+    }
+
+    for (const item of EXCEL_SKILLDESC) {
+        SKILLDESC_MAP[item.skilldesc] = item;
+    }
+
+    // SKILL_MAP <id/skill/小写连拼/skilldesc object>
+    for (const item of EXCEL_SKILLS) {
+        item.DESC = SKILLDESC_MAP[item.skilldesc];
+        SKILL_MAP[item.skill] = item;
+        SKILL_MAP[item[`*Id`]] = item;
+        SKILL_MAP[normalizeSkillName(item.skill)] = item;
+        SKILL_MAP[item.skilldesc] = item;
+    }
+
+    // ITEMSTATCOST_MAP
+    for (const item of [...EXCEL_ITEMSTATCOST, ...ITEMSTATCOST_EXT]) {
+        ITEMSTATCOST_MAP[item.Stat] = item;
+    }
+
+    // PROPERTY_MAP
+    for (let item of [...EXCEL_PROPERTIES, ...PROPERTIES_EXT]) {
+        item.STATS = [];
+        for (let index = 1; index <= CONSTANTS.PROPERTIES_STATS_LENGTH; index++) {
+            const STAT = {
+                "STAT": item[`stat${index}`],
+                "FUNC": item[`func${index}`],
+                "SET": item[`set${index}`],
+                "VAL": item[`val${index}`]
+            };
+            if (STAT.STAT) item.STATS.push(STAT);
+            delete item[`stat${index}`];
+            delete item[`func${index}`];
+            delete item[`set${index}`];
+            delete item[`val${index}`];
+        }
+        PROPERTY_MAP[item.code] = item;
+    }
+
+
+
+}
+
+
+function format(local, itemstatcost) {
+    // itemstatcost = { "CODE": { CODE, PARAM, MIN, MAX }, "STAT": { STAT, FUNC, SET, VAL } };
+    const PARAM = itemstatcost.CODE.PARAM;
+    const CODE = itemstatcost.CODE.CODE;
+    const MIN = itemstatcost.CODE.MIN;
+    const MAX = itemstatcost.CODE.MAX
+    const STAT = itemstatcost.STAT.STAT;
+    const FUNC = itemstatcost.STAT.FUNC;
+    const SET = itemstatcost.STAT.SET;
+    const VAL = itemstatcost.STAT.VAL;
+
+    switch (itemstatcost.descfunc) {
+        case 5: {
+            // #14 Dor "%+d%% 機率擊中使怪物逃跑"
+            local = local.replace("%+d", MIN * 100 / 128);
+            break;
+        }
+        case 11: {
+            local = local.replace(`%d`, 1)
+                .replace(`%d`, 100 / PARAM)
+                .replace(`%1`, 100 / PARAM)
+                .replace(`%0`, 1);
+            break;
+        }
+        case 12: {
+            if (MIN > 1) local = `${local}+${MIN}`;
+            break;
+        }
+        case 13: {
+            if (CODE === `randclassskill`) {
+                local = local.replace(`%+d`, `+${VAL}`);
+            } else {
+                local = LOCAL_MAP[EXCEL_CHARSTATS[VAL].StrAllSkills][LNG];
+                local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>` : `+${MIN}`);
+            }
+            break;
+        }
+        case 14: {
+            // [Class Skill Tab ID] = (Amazon = 0-2, Sorceress = 3-5, Necromancer = 6-8, Paladin = 9-11, Barbarian = 12-14, Druid = 15-17,  Assassin = 18-20)
+            const charIndex = parseInt(PARAM / 3);
+            const skillTabSerial = PARAM % 3 + 1;
+            const charstat = EXCEL_CHARSTATS[charIndex];
+            const key = charstat[`StrSkillTab${skillTabSerial}`];
+            const only = charstat["StrClassOnly"];
+            local = `${LOCAL_MAP[key][LNG]}<span class='only-span'>${LOCAL_MAP[only][LNG]}</span>`;
+            local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>` : `+${MIN}`);
+            break;
+        }
+        case 15: {
+            local = local.replace("%d", MIN)
+                .replace("%d", MAX)
+                .replace("%s", `<span class='skill-span'>${LOCAL_MAP[SKILL_MAP[PARAM].DESC[`str name`]][LNG]}</span>`);
+            break;
+        }
+        case 16: {
+            local = local.replace("%d", MIN < MAX ? `<span class='range-span'>${MIN}-${MAX}</span>` : MIN)
+                .replace("%s", `<span class='skill-span'>${LOCAL_MAP[SKILL_MAP[PARAM].DESC[`str name`]][LNG]}</span>`);
+            break;
+        }
+        case 17: {
+            local = local.replace("%+d", `+${MIN / CONSTANTS.PERLEVEL}`);
+            break;
+        }
+        case 19: {
+            if (CODE.includes("/lvl")) {
+                if (PARAM) {
+                    local = local.replace("%+d", `+${PARAM / CONSTANTS.PERLEVEL}`)
+                        .replace("%d", `+${PARAM / CONSTANTS.PERLEVEL}`);
+                } else {
+                    local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN / CONSTANTS.PERLEVEL}-${MAX / CONSTANTS.PERLEVEL}</span>` : `+${MIN / CONSTANTS.PERLEVEL}`)
+                        .replace("%d", MIN < MAX ? `<span class='range-span'>${MIN / CONSTANTS.PERLEVEL}-${MAX / CONSTANTS.PERLEVEL}</span>` : `+${MIN / CONSTANTS.PERLEVEL}`);
+                }
+            } else {
+                local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>` : `+${MIN}`)
+                    .replace("%d", MIN < MAX ? `<span class='range-span'>${MIN}-${MAX}</span>` : `${MIN}`);
+            }
+            break;
+        }
+        case 23: {//Faith reanimate
+            local = local.replace("%0", MIN < MAX ? `<span class='range-span'>${MIN}-${MAX}</span>` : MIN)
+                .replace("%1", LOCAL_MAP[EXCEL_MONSTATS[PARAM].NameStr][LNG]);
+            break;
+        }
+        case 24: {
+            const SKILLNAME = LOCAL_MAP[SKILL_MAP[PARAM].DESC[`str name`]][LNG];
+            local = local.replace("%d", MAX)
+                .replace("%s", `<span class='skill-span'>${SKILLNAME}</span>`)
+                .replace("%d/%d", MIN);
+            break;
+        }
+        case 27: {
+            if (CODE === 'skill') {
+                const SKILL = SKILL_MAP[PARAM];
+                const SKILLNAME = LOCAL_MAP[SKILL.DESC[`str name`]][LNG];
+                const ONLY = LOCAL_MAP[CHAR_MAP[SKILL.charclass].StrClassOnly][LNG];
+
+                local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>`:`+${MIN}`)
+                    .replace("%s", `<span class='skill-span'>${SKILLNAME}</span>`)
+                    .replace("%s", `<span class='only-span'>${ONLY}</span>`);
+            }
+            if (CODE === 'skill-rand') {
+                //ormus
+                const SKILLS = [];
+                for (let index = 61; index <= 65; index++) {
+                    SKILLS.push(LOCAL_MAP[SKILL_MAP[index].DESC[`str name`]][LNG]);
+                }
+
+                local = LOCAL_MAP[`ModStrF000`][LNG];
+                local = local.replace("%+d", `+${PARAM}`)
+                    .replace("%s", SKILLS.join("/"));
+            }
+            break;
+        }
+        case 28: {
+            const SKILLNAME = LOCAL_MAP[SKILL_MAP[PARAM].DESC[`str name`]][LNG];
+            local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>` : `+${MIN}`)
+                .replace("%s", `<span class='skill-span'>${SKILLNAME}</span>`);
+            break;
+        }
+        case 29: {
+            local = local.replace("%d", MIN < MAX ? `<span class='range-span'>${MIN}-${MAX}</span>` : MIN);
+            break;
+        }
+        /** 自定义区 **/
+        case 0xF0: {
+            // 无参数 [ethereal]
+            break;
+        }
+        case 0xF1: {//所有属性/抗性
+            local = local.replace(`%+d`, MIN < MAX ? `+<span class='range-span'>${MIN}-${MAX}</span>` : `+${MIN}`);
+            break;
+        }
+        case 0xF2: {//毒伤
+            // itemstatcost = { "CODE": { CODE, PARAM, MIN, MAX }, "STAT": { STAT, FUNC, SET, VAL } };
+            const MINMIN = itemstatcost.MIN.CODE.MIN;
+            const MINMAX = itemstatcost.MIN.CODE.MAX;
+            const MINCODE = itemstatcost.MIN.CODE.CODE;
+
+            const MAXMIN = itemstatcost.MAX.CODE.MIN;
+            const MAXMAX = itemstatcost.MAX.CODE.MAX;
+            const MAXCODE = itemstatcost.MAX.CODE.CODE;
+
+            const LENPARAM = itemstatcost.LEN.CODE.PARAM;
+            const LENMIN = itemstatcost.LEN.CODE.MIN; 
+            const LENMAX = itemstatcost.LEN.CODE.MAX;
+
+            let MIN = (MINMIN + MINMAX) / 2;
+            let MAX = (MAXMIN + MAXMAX) / 2;
+            let LEN = ((LENPARAM || LENMIN) + (LENPARAM || LENMAX)) / 2;
+            let SEC = LEN / CONSTANTS.FRAMES;
+
+            if (MIN === MAX) {
+                local = local.replace(/%d.*?%d/, Math.round((MIN + MAX) / 2 * LEN / 256)).replace("%d", SEC);
+            } else {
+                local = local.replace(`%d`, Math.round(MIN * LEN / 256)).replace(`%d`, Math.round(MAX * LEN / 256)).replace("%d", SEC);
+            }
+            break;
+        }
+        case 0xF3: {//电/冰/火/魔/物伤
+            const MINMIN = itemstatcost.MIN.CODE.MIN;
+            const MINMAX = itemstatcost.MIN.CODE.MAX;
+            const MINCODE = itemstatcost.MIN.CODE.CODE;
+
+            const MAXMIN = itemstatcost.MAX.CODE.MIN;
+            const MAXMAX = itemstatcost.MAX.CODE.MAX;
+            const MAXCODE = itemstatcost.MAX.CODE.CODE;
+
+            if (MINCODE === MAXCODE) {
+                if (MINMIN === MAXMAX) {
+                    local = local.replace(/%d.*?%d/, MINMIN);
+                } else {
+                    local = local.replace(`%d`, MINMIN).replace(`%d`, MAXMAX);
+                }
+            } else {
+                local = local.replace(`%d`, MINMIN === MINMAX ? MINMIN : `<span class='range-span'>${MINMIN}-${MINMAX}</span>`)
+                    .replace(`%d`, MAXMIN === MAXMAX ? MAXMIN : `<span class='range-span'>${MAXMIN}-${MAXMAX}</span>`);
+            }
+            break;
+        }
+        case 0xFF: {//依赖descline渲染
+
+            const skill = SKILL_MAP[PARAM];
+            const skilldesc = skill.DESC;
+            const key = skilldesc[`item proc text`];
+            let count = skilldesc[`item proc descline count`];
+
+            const templet = LOCAL_MAP[key][LNG];
+            const array = templet.split(`\n`);
+
+            for (let index = 0; index < array.length; index++) {
+                let line = array[index];
+                if (index === array.length - 1) {
+                    line = line.replace(`%s`, [skill.auralencalc / CONSTANTS.FRAMES, LOGIC.SECONDS[LNG]].join(` `));
+                } else {
+                    const descline = skilldesc[`descline${index}`];
+                    if (descline) {
+                        desctexta = skilldesc[`desctexta${index}`];
+                        desccalca = skilldesc[`desccalca${index}`];
+                        line = line.replace(`%s`, LOCAL_MAP[desctexta][LNG]
+                            .replace(`%+d`, `+` + skill[desccalca.replace(`par`, `Param`)])
+                            .replace(`%d`, skill[desccalca.replace(`par`, `Param`)])
+                            .replace(`%s`, skill[desccalca.replace(`par`, `Param`)])
+                            .replace(`%%`, `%`));
+                    }
+                }
+                array[index] = line;
+            }
+            local = array.reverse().join(`<BR>`);
+            break;
+        }
+        default:
+            console.log(`desc.descfunc = ${descfunc} 未定义渲染方式`);
+            alert(`desc.descfunc = ${descfunc} 未定义渲染方式`);
+            break;
+
+    }
+
+    local = local.replace("%%", "%").replace("+-", "-");
+    if(itemstatcost.descstr2){
+        local = local + LOCAL_MAP[itemstatcost.descstr2][LNG];
+    }
+
+    return local;
 }

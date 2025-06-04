@@ -4,17 +4,7 @@
  * @date 2025-5-22
  */
 
-let LNG = ``;
-let runewords = [];
-let propertyMap = {};
-let skillMap = {};
-let skilldescMap = {}
-let gemMap = {};
-
-const LOCAL_MAP = {};
-const MISC_MAP = {};
-const CHAR_MAP = {};
-const DESC_MAP = {};
+let RUNEWORDS = [];
 
 function loaded() {
     loadLNG();
@@ -64,14 +54,6 @@ function loaded() {
         button.classList.toggle(`active`, button.getAttribute(`data-lang`) === LNG);
     });
 
-
-
-    //charstats.js remove Expansion
-    EXCEL_CHARSTATS.splice(5, 1);
-
-    //playerclass.js remove Expansion
-    EXCEL_PLAYERCLASS.splice(5, 1);
-
     init();
     filter();
 
@@ -80,195 +62,105 @@ function loaded() {
 
 function init() {
 
-    /** I18n **/
-    COMPONENTS.forEach(item => {
-        const ele = document.getElementById(item.id);
-        if(ele){
-            const radio = ele.querySelector(`input[type="radio"]`);
-            ele[item.key] = item[LNG];
-            if(radio)ele.prepend(radio);
-        }
-    });
-
-    // init LOCAL_MAP
-    for (const item of [...STRINGS_ITEM_MODIFIERS, ...STRINGS_ITEM_NAMES, ...STRINGS_ITEM_RUNES, ...STRINGS_MONSTERS, ...STRINGS_SKILLS, ...ITEM_MODIFIERS_EXT]) {
-        LOCAL_MAP[item.Key] = item;
-    }
-
-    //符文(杂项属性)
-    for (const item of EXCEL_MISC) {
-        if (/^r\d{2}$/i.test(item.code)) {
-            MISC_MAP[item.code] = item;
-        }
-    }
-    
-    // init CHAR_MAP Key(0/ama/Amazon...) 
-    for (let index = 0; index < EXCEL_CHARSTATS.length; index++) {
-        const charstat = EXCEL_CHARSTATS[index];
-        CHAR_MAP[charstat.class] = charstat;
-        CHAR_MAP[EXCEL_PLAYERCLASS[index].Code] = charstat;
-        CHAR_MAP[index] = charstat;
-    }
-
-    //技能(id/skill/小写连拼/skilldesc 4映射)
-    for (const item of EXCEL_SKILLS) {
-        skillMap[item.skill] = item;
-        skillMap[item[`*Id`]] = item;
-        skillMap[normalizeSkillName(item.skill)] = item;
-        skillMap[item.skilldesc] = item;
-    }
-
-    //技能描述
-    for (const item of EXCEL_SKILLDESC) {
-        skilldescMap[item.skilldesc] = item;
-    }
-
-    // init DESC_MAP
-    for (const item of [...EXCEL_ITEMSTATCOST, ...ITEMSTATCOST_EXT]) {
-        let obj = clone(item);
-        DESC_MAP[obj.Stat] = obj;
-    }
-
-    //属性
-    for (const item of [...EXCEL_PROPERTIES, ...PROPERTIES_EXT]) {
-        let obj = clone(item);
-        obj.stats = [];
-        let i = 1;
-        while (obj[`stat${i}`]) {
-            obj.stats.push({
-                "stat": obj[`stat${i}`],
-                "func": obj[`func${i}`],
-                "set": obj[`set${i}`],
-                "val": obj[`val${i}`]
-            });
-            i++;
-        }
-        propertyMap[obj.code] = obj;
-    }
-
-    //符文(宝石属性)
-    for (let gem of EXCEL_GEMS) {
-        if (/^r\d{2}$/i.test(gem.code)) {
-            //image
-            gem.image = `<img src="image/` + gem.code + `.png" />`;
-
-            //rune.props
-            for (const KEY in EQUIPMENT_TYPE) {
-                const key = EQUIPMENT_TYPE[KEY];
-                gem[key] = [];
-                let i = 1;
-                while (gem[`${key}Mod${i}Code`]) {
-                    gem[key].push({
-                        "Code": gem[`${key}Mod${i}Code`],
-                        "Param": gem[`${key}Mod${i}Param`],
-                        "Min": gem[`${key}Mod${i}Min`],
-                        "Max": gem[`${key}Mod${i}Max`]
-                    });
-                    i++;
-                }
-            }
-            gemMap[gem.code] = gem;
-        }
-    }
+    common();
 
     //符文之语
-    runewords = JSON.parse(JSON.stringify(EXCEL_RUNES));
+    RUNEWORDS = clone(EXCEL_RUNES);
     //过滤未发布
-    runewords = runewords.filter(rune => rune.complete === 1);
-    for (let runeword of runewords) {
+    RUNEWORDS = RUNEWORDS.filter(runeword => runeword.complete === 1);
+    for (let runeword of RUNEWORDS) {
         //名称(显示/查询)
         const local = LOCAL_MAP[runeword.Name];
-        runeword.viewName = [local.enUS.toUpperCase(), local.zhCN, local.zhTW].join(` `);
+        runeword.VIEWNAME = `${local.enUS.toUpperCase()} ${local.zhCN} ${local.zhTW}`;
 
         //可选装备类型
-        runeword.itypes = [];
-        runeword.vtypes = [];
-        let i = 1;
-        while (runeword[`itype${i}`]) {
-            const it = runeword[`itype${i}`];
-            runeword.itypes.push(it);
-            runeword.vtypes.push(EQUIPMENT[it].name[LNG]);
-            runeword[`is${EQUIPMENT[it].type}`] = true;
-            i++;
+        runeword.ITYPES = [];
+        runeword.VTYPES = [];
+        for (let index = 1; index <= CONSTANTS.RUNEWORDS_ITYPE_LENGTH; index++) {
+            const itype = runeword[`itype${index}`];
+            if(itype){
+                const equipment = EQUIPMENT[itype];
+                const key = equipment.TYPE.toUpperCase();
+                runeword.ITYPES.push(itype);
+                runeword.VTYPES.push(equipment.NAME[LNG]);
+                runeword[key] = true;
+            }
+            delete runeword[`itype${index}`];
         }
-
+        
         //符文列表
-        runeword.levelreq = 0;
-        runeword.runes = [];
-        let j = 1;
-        while (runeword[`Rune${j}`]) {
-            const rune = clone(runeword[`Rune${j}`]);
-            runeword.runes.push(rune);
-
-            const runelevelreq = clone(MISC_MAP[rune]).levelreq;
-            runeword.levelreq = runeword.levelreq > runelevelreq ? runeword.levelreq : runelevelreq;
-
-            j++;
+        runeword.LEVELREQ = 0;
+        runeword.RUNES = [];
+        for (let index = 1; index <= CONSTANTS.RUNEWORDS_RUNES_LENGTH; index++) {
+            const rune = runeword[`Rune${index}`];
+            if(rune){
+                runeword.RUNES.push(rune);
+                runeword.LEVELREQ = Math.max(runeword.LEVELREQ, MISC_MAP[rune].levelreq);
+            }
+            delete runeword[`Rune${index}`];
         }
-        runeword.sockets = runeword.runes.length;
+        runeword.SOCKETS = runeword.RUNES.length;
 
         //属性列表
-        runeword.props = [];
-        let k = 1;
-        while (runeword[`T1Code${k}`]) {
-            runeword.props.push({
-                "Code": runeword[`T1Code${k}`],
-                "Param": runeword[`T1Param${k}`],
-                "Min": runeword[`T1Min${k}`],
-                "Max": runeword[`T1Max${k}`]
-            });
-            k++;
+        runeword.CODES = [];
+        for (let index = 1; index <= CONSTANTS.RUNEWORDS_PROPERTIES_LENGTH; index++) {
+            const code = {
+                "CODE": runeword[`T1Code${index}`],
+                "PARAM": runeword[`T1Param${index}`],
+                "MIN": runeword[`T1Min${index}`],
+                "MAX": runeword[`T1Max${index}`]
+            };
+            if(code.CODE) runeword.CODES.push(code);
+            delete runeword[`T1Code${index}`];
+            delete runeword[`T1Param${index}`];
+            delete runeword[`T1Min${index}`];
+            delete runeword[`T1Max${index}`];
         }
 
-        // descs分类拼接
+        // runeword[KEY](itemstatcost)分类拼接
         for (const KEY in EQUIPMENT_TYPE) {
-            const key = EQUIPMENT_TYPE[KEY];
-            if (!runeword[`is${key}`]) continue;
-            let descs = [];
+            if (!runeword[KEY]) continue;
 
-            // descs符文之语
-            for (const prop of runeword.props) {
-                const property = clone(propertyMap[prop.Code]);
-                for (const stat of property.stats) {
-                    const desc = clone(DESC_MAP[stat.stat]);
-                    desc.stat = clone(stat);
-                    desc.prop = clone(prop);
-                    descs.push(desc);
+            runeword[KEY] = [];
+            // +Runeword.ITEMSTATCOSTS
+            for (const code of runeword.CODES) {
+                const property = clone(PROPERTY_MAP[code.CODE]);
+                for (const stat of property.STATS) {
+                    const itemstatcost = clone(ITEMSTATCOST_MAP[stat.STAT]);
+                    itemstatcost.STAT = clone(stat);
+                    itemstatcost.CODE = clone(code);
+                    runeword[KEY].push(itemstatcost);
                 }
             }
 
-            // descs符文
-            if (runeword[`is${key}`]) {
-                for (const rune of runeword.runes) {
-                    for (const prop of gemMap[rune][key]) {
-                        const property = clone(propertyMap[prop.Code]);
-                        for (const stat of property.stats) {
-                            const desc = clone(DESC_MAP[stat.stat]);
-                            desc.stat = clone(stat);
-                            desc.prop = clone(prop);
-                            descs.push(desc);
-                        }
+            // +Runeword.RUNES.ITEMSTATCOSTS
+            for (const rune of runeword.RUNES) {
+                for (const code of GEM_MAP[rune][KEY]) {
+                    const property = clone(PROPERTY_MAP[code.CODE]);
+                    for (const stat of property.STATS) {
+                        const itemstatcost = clone(ITEMSTATCOST_MAP[stat.STAT]);
+                        itemstatcost.STAT = clone(stat);
+                        itemstatcost.CODE = clone(code);
+                        runeword[KEY].push(itemstatcost);
                     }
                 }
             }
-            runeword[`${key}`] = descs;
         }
 
-        // descs分类合并
+        // runeword[KEY](itemstatcost)分类合并
         for (const KEY in EQUIPMENT_TYPE) {
-            const key = EQUIPMENT_TYPE[KEY];
-            if (!runeword[`is${key}`]) continue;
-            let arr = runeword[`${key}`];
+            if (!runeword[KEY]) continue;
+            let arr = runeword[KEY];
             for (let i = 0; i < arr.length; i++) {
                 const base = arr[i];
-                if (UNIQUE_ITEMSTATCOST.includes(base.Stat)) continue;
+                if (UNIQUE_ITEMSTATCOST.includes(base.STAT.STAT)) continue;
                 for (let j = arr.length - 1; j > i; j--) {
                     const current = arr[j];
-                    if (current.Stat == base.Stat) {
-                        base.prop.Min += current.prop.Min;
-                        base.prop.Max += current.prop.Max;
-                        if(current.prop.Code === `dmg-pois` && current.prop.Code === `dmg-pois`){
-                            base.prop.Param = (base.prop.Param + current.prop.Param)/2
+                    if (current.STAT.STAT === base.STAT.STAT) {
+                        base.CODE.MIN += current.CODE.MIN;
+                        base.CODE.MAX += current.CODE.MAX;
+                        if(current.CODE.CODE === `dmg-pois` && current.CODE.CODE === `dmg-pois`){
+                            base.CODE.PARAM = (base.CODE.PARAM + current.CODE.PARAM)/2
                         }
                         // 删除高索引项
                         arr.splice(j, 1);
@@ -279,78 +171,78 @@ function init() {
 
         // desc分组合并
         for (const KEY in EQUIPMENT_TYPE) {
-            const key = EQUIPMENT_TYPE[KEY];
-            if (!runeword[`is${key}`]) continue;
-            let descs = runeword[`${key}`];
+            if (!runeword[KEY]) continue;
 
-            /**
-             * STAT_GROUP => 全属性/全抗
-             **/
+            let itemstatcosts = runeword[KEY].map(itemstatcost => itemstatcost.STAT.STAT);
+
+            // STAT_GROUP => 全属性/全抗
             for (const item of STAT_GROUP) {
                 const io = clone(item);
-                const includesAll = io.in.every(input => descs.map(desc => desc.Stat).includes(input));
+                const includesAll = io.in.every(input => itemstatcosts.includes(input));
                 if (includesAll) {
-                    const selDescs = descs.filter(desc => io.in.includes(desc.Stat));
-                    const alignment = selDescs.every(desc => desc.prop.Min === selDescs[0].prop.Min);
-                    if (alignment) {
-                        const first = selDescs[0];
-                        io.out.prop = first.prop;
-                        io.out.stat = first.stat;
+                    const subItemStatCost = runeword[KEY].filter(itemstatcost => io.in.includes(itemstatcost.Stat));
+                    const equals = subItemStatCost.every(itemstatcost => itemstatcost.CODE.MIN === subItemStatCost[0].CODE.MIN);
+                    if (equals) {
+                        const first = subItemStatCost[0];
+                        io.out.CODE = first.CODE;
+                        io.out.STAT = first.STAT;
                         io.out.descpriority = first.descpriority;
-                        descs.removeAll(selDescs);
-                        descs.push(io.out);
+                        runeword[KEY].removeAll(subItemStatCost);
+                        runeword[KEY].push(io.out);
                     }
                 }
             }
 
-            /**
-             * RANGE_GROUP => 大小伤
-             **/
+            // RANGE_GROUP => 大小伤
             for (const item of RANGE_GROUP) {
                 const io = clone(item);
-                const includesAll = io.in.every(input => descs.map(desc => desc.Stat).includes(input));
+                const includesAll = io.in.every(input => itemstatcosts.includes(input));
                 if (includesAll) {
-                    let minObj = descs.filter(desc => desc.Stat === io.in[0])[0];
-                    let maxObj = descs.filter(desc => desc.Stat === io.in[1])[0];
-                    let lenObj = descs.filter(desc => desc.Stat === io.in[2])[0];
+                    let minObj = runeword[KEY].filter(itemstatcost => itemstatcost.Stat === io.in[0])[0];
+                    let maxObj = runeword[KEY].filter(itemstatcost => itemstatcost.Stat === io.in[1])[0];
+                    let lenObj = runeword[KEY].filter(itemstatcost => itemstatcost.Stat === io.in[2])[0];
                     
-                    let newDesc = io.out;
-                    newDesc.min = minObj;
-                    newDesc.max = maxObj;
-                    if(lenObj)newDesc.len = lenObj;
-                    newDesc.descpriority = minObj.descpriority;
+                    let newItemStatCost = io.out;
+                    newItemStatCost.MIN = minObj;
+                    newItemStatCost.MAX = maxObj;
+                    newItemStatCost.CODE = minObj.CODE;
+                    newItemStatCost.STAT = minObj.STAT;
+                    if(lenObj)newItemStatCost.LEN = lenObj;
+                    newItemStatCost.descpriority = minObj.descpriority;
 
-                    //适应 local 方法, 无用数据
-                    newDesc.prop = minObj.prop;
-                    newDesc.stat = minObj.stat;
-                    
-                    const selDescs = descs.filter(desc => io.in.includes(desc.Stat));
-                    descs.removeAll(selDescs);
-                    descs.push(newDesc);
+                    //物理伤害:小伤>=大伤,则不合并
+                    if(0xF008 === newItemStatCost[`*ID`] && minObj.CODE.MAX >= maxObj.CODE.MIN) continue;
+
+                    const subItemStatCost = runeword[KEY].filter(itemstatcost => io.in.includes(itemstatcost.Stat));
+                    runeword[KEY].removeAll(subItemStatCost);
+                    runeword[KEY].push(newItemStatCost);
                 }
             }
 
             //属性词条排序
-            runeword[`${key}`].sort((a, b) => {
+            runeword[KEY].sort((a, b) => {
                 //1.itemstatcost.js descpriority DESC
                 if (b.descpriority != a.descpriority) {
                     return b.descpriority - a.descpriority;
                 }
-                //2.skills.js *Id DESC
-                if (skillMap[b.prop.Param] && skillMap[a.prop.Param]) {
-                    if (skillMap[b.prop.Param][`*Id`] != skillMap[a.prop.Param][`*Id`]) {
-                        return skillMap[b.prop.Param][`*Id`] - skillMap[a.prop.Param][`*Id`];
+                //2.itemstatcost.js *ID DESC
+                if(b[`*ID`] != a[`*ID`]){
+                    return b[`*ID`] - a[`*ID`];
+                }
+                //3.skills.js *Id DESC
+                if (SKILL_MAP[b.CODE.PARAM] && SKILL_MAP[a.CODE.PARAM]) {
+                    if (SKILL_MAP[b.CODE.PARAM][`*Id`] != SKILL_MAP[a.CODE.PARAM][`*Id`]) {
+                        return SKILL_MAP[b.CODE.PARAM][`*Id`] - SKILL_MAP[a.CODE.PARAM][`*Id`]
                     }
                 }
                 return -1;
             });
         }
-
+        
     }
-
+    
     //符文之语列表排序 需求等级 ASC
-    runewords.sort((a, b) => a.levelreq - b.levelreq);
-
+    RUNEWORDS.sort((a, b) => a.LEVELREQ - b.LEVELREQ);
 }
 
 // 过滤符合条件的符文之语
@@ -364,16 +256,17 @@ function filter() {
         sockets: document.getElementById(`searchForm`).querySelector(`input[name="sockets"]:checked`)?.value || 0
     };
 
-    for (const rune of runewords) {
+    for (const rune of RUNEWORDS) {
+        
         if (formData.keyword !== ``) {
             var value = formData.keyword.toUpperCase();
-            if (!rune.viewName.includes(value)) {
+            if (!rune.VIEWNAME.includes(value)) {
                 continue;
             }
         }
 
         if (formData.sockets != 0) {
-            if (rune.sockets != formData.sockets) {
+            if (rune.SOCKETS != formData.sockets) {
                 continue;
             }
         }
@@ -383,10 +276,10 @@ function filter() {
             let t = formData.type;
             while (t !== null) {
                 tree.push(t);
-                t = EQUIPMENT[t].parent;
+                t = EQUIPMENT[t].PARENT;
             }
 
-            const allow = rune.itypes.some(tt => tree.includes(tt));
+            const allow = rune.ITYPES.some(tt => tree.includes(tt));
             if (!allow) continue;
         }
 
@@ -408,9 +301,9 @@ function result(array) {
     countDiv.append([LOGIC.COUNT_PREFIX[LNG], array.length, LOGIC.COUNT_SUFFIX[LNG]].join(` `));
     result.appendChild(countDiv);
 
-
     //list
     for (const runeword of array) {
+        const id = runeword.Name.replace("Runeword", "") + ". ";
         //container
         const runewordDiv = document.createElement(`div`);
         runewordDiv.className = `styled-box`;
@@ -418,29 +311,29 @@ function result(array) {
         //name
         const nameDiv = document.createElement(`div`);
         nameDiv.className = `name-box`;
-        nameDiv.append(runeword.viewName);
+        nameDiv.append(id);
+        nameDiv.append(runeword.VIEWNAME);
 
         //image
         const imageDiv = document.createElement(`div`);
         imageDiv.className = `image-box`;
-        for (const r of runeword.runes) {
-            const rune = gemMap[r];
-            imageDiv.innerHTML += rune.image;
+        for (const r of runeword.RUNES) {
+            const rune = GEM_MAP[r];
+            imageDiv.innerHTML += rune.IMAGE;
         }
 
         //require
         const requireDiv = document.createElement(`div`);
         requireDiv.className = `require-box`;
-        requireDiv.innerHTML += `<div>` + [runeword.sockets, LOGIC.SOCKETS[LNG], runeword.vtypes.join(`/`)].join(` `) + `</div>`;
-        requireDiv.innerHTML += `<div>${LOGIC.REQUIRED_LEVEL[LNG]}` + runeword.levelreq + `</div>`;
+        requireDiv.innerHTML += `<div>` + [runeword.SOCKETS, LOGIC.SOCKETS[LNG], runeword.VTYPES.join(`/`)].join(` `) + `</div>`;
+        requireDiv.innerHTML += `<div>${LOGIC.REQUIRED_LEVEL[LNG]}` + runeword.LEVELREQ + `</div>`;
 
         //properties
         const descDiv = document.createElement(`div`);
         descDiv.className = `x-box`;
         for (const KEY in EQUIPMENT_TYPE) {
-            const key = EQUIPMENT_TYPE[KEY];
-            if (runeword[`is${key}`]) {
-                const div = local(key, runeword);
+            if (runeword[KEY]) {
+                const div = local(KEY, runeword);
                 descDiv.appendChild(div);
             }
         }
@@ -460,192 +353,35 @@ function result(array) {
 function local(equipType, runeword) {
     let propDiv = document.createElement(`div`);
     propDiv.className = `prop-box`;
-    propDiv.innerHTML = [`<div class="form-row">`, LOGIC[equipType.toUpperCase()][LNG], `</div>`].join(``);
+    propDiv.innerHTML = [`<div class="form-row">`, LOGIC[equipType][LNG], `</div>`].join(``);
 
-    for (const desc of runeword[equipType]) {
+    for (const itemstatcost of runeword[equipType]) {
         //0值项不渲染
-        if ( (desc.prop ? desc.prop.Min : desc.min.prop.Min) === 0 ) continue;
+        if ( (itemstatcost.CODE ? itemstatcost.CODE.MIN : itemstatcost.MIN.CODE.MIN) === 0 ) continue;
 
         //无本地化不渲染
-        let descstr = desc.descstrpos;
-        if(desc.param && desc.param.Min && desc.param.Min < 0){
-            descstr = desc.descstrneg;
+        let descstr = itemstatcost.descstrpos;
+        if(itemstatcost.CODE && itemstatcost.CODE.MIN && itemstatcost.CODE.MIN < 0){
+            descstr = itemstatcost.descstrneg;
         }
         let local = LOCAL_MAP[descstr];
         if(!local)continue;
         local = local[LNG];
 
-        let descfunc = desc.descfunc;
-        //依赖descline渲染
-        if (desc.prop
-            && desc.prop.Param
-            && skillMap[desc.prop.Param]
-            && skilldescMap[skillMap[desc.prop.Param].skilldesc]
-            && skilldescMap[skillMap[desc.prop.Param].skilldesc][`item proc descline count`]
-            && skilldescMap[skillMap[desc.prop.Param].skilldesc][`item proc descline count`] > 0) {
-            descfunc = 0xFF;
+        // 依赖descline渲染
+        if (itemstatcost.CODE
+            && itemstatcost.CODE.PARAM
+            && SKILL_MAP[itemstatcost.CODE.PARAM]
+            && SKILL_MAP[itemstatcost.CODE.PARAM].DESC
+            && SKILL_MAP[itemstatcost.CODE.PARAM].DESC[`item proc descline count`]
+            && SKILL_MAP[itemstatcost.CODE.PARAM].DESC[`item proc descline count`] > 0) {
+            itemstatcost.descfunc = 0xFF;
         }
 
-        switch (descfunc) {
-            case 5: {
-                // #14 Dor `%+d%% 機率擊中使怪物逃跑`
-                local = local.replace(`%+d`, desc.prop.Min * 100 / 128);
-                break;
-            }
-            case 11: {
-                local = local.replace(`%d`, 1).replace(`%d`, 100 / desc.prop.Param).replace(`%1`, 100 / desc.prop.Param).replace(`%0`, 1);
-                break;
-            }
-            case 12: {
-                local = desc.prop.Min > 1 ? [local, `+`, desc.prop.Min].join(``) : local;
-                break;
-            }
-            case 13: {
-                local = LOCAL_MAP[EXCEL_CHARSTATS[desc.stat.val].StrAllSkills][LNG];
-                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``));
-                break;
-            }
-            case 14: {
-                const charIndex = parseInt(desc.prop.Param / 3);
-                const skillTabSerial = desc.prop.Param % 3 + 1;
-                const charstat = EXCEL_CHARSTATS[charIndex];
-                const key = charstat[`StrSkillTab${skillTabSerial}`];
-                const only = charstat[`StrClassOnly`];
-                local = LOCAL_MAP[key][LNG] + `<span class="only-span">` + LOCAL_MAP[only][LNG] + `</span>`;
-                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``));
-                break;
-            }
-            case 15: {
-                local = local.replace(`%d`, desc.prop.Min)
-                    .replace(`%d`, desc.prop.Max)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
-                break;
-            }
-            case 16: {
-                local = local.replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
-                break;
-            }
-            case 17: {
-                local = local.replace(`%+d`, `+` + (desc.prop.Min / PERLEVEL));
-                break;
-            }
-            case 19: {
-                if (desc.prop.Code.includes(`/lvl`)) {
-                    if (desc.prop.Param) {
-                        local = local.replace(`%+d`, [`+`, desc.prop.Param / PERLEVEL].join(``))
-                            .replace(`%d`, [desc.prop.Param / PERLEVEL].join(``));
-                    } else {
-                        local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min / PERLEVEL, `-`, desc.prop.Max / PERLEVEL, `</span>`].join(``) : [`+`, desc.prop.Min / PERLEVEL].join(``))
-                            .replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min / PERLEVEL, `-`, desc.prop.Max / PERLEVEL, `</span>`].join(``) : desc.prop.Min / PERLEVEL);
-                    }
-                } else {
-                    local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
-                        .replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min);
-                }
-                break;
-            }
-            case 23: {//Faith reanimate
-                local = local.replace(`%0`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min)
-                    .replace(`%1`, LOCAL_MAP[EXCEL_MONSTATS[desc.prop.Param].NameStr][LNG]);
-                break;
-            }
-            case 24: {
-                local = local.replace(`%d`, desc.prop.Max)
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``))
-                    .replace(`%d/%d`, desc.prop.Min);
-                break;
-            }
-            case 27: {
-                const skill = skillMap[desc.prop.Param];
-                const skilldesc = skilldescMap[skill.skilldesc];
-                const strName = skilldesc[`str name`];
+        local = format(local, itemstatcost);
 
-                const playstat = CHAR_MAP[skill.charclass]
-                const only = playstat.StrClassOnly;
+        propDiv.innerHTML += local + "<BR>";
 
-                local = local.replace(`%+d`, [`+`, desc.prop.Min].join(``))
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[strName][LNG], `</span>`].join(``))
-                    .replace(`%s`, [`<span class="only-span">`, LOCAL_MAP[only][LNG], `</span>`].join(``));
-
-                break;
-            }
-            case 28: {
-                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
-                    .replace(`%s`, [`<span class="skill-span">`, LOCAL_MAP[skilldescMap[skillMap[`${desc.prop.Param}`].skilldesc][`str name`]][LNG], `</span>`].join(``));
-                break;
-            }
-            case 29: {
-                local = local.replace(`%d`, desc.prop.Min < desc.prop.Max ? [`<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : desc.prop.Min);
-                break;
-            }
-            /** 自定义区 **/
-            case 0xF1: {//所有属性/抗性
-                local = local.replace(`%+d`, desc.prop.Min < desc.prop.Max ? [`+`, `<span class="range-span">`, desc.prop.Min, `-`, desc.prop.Max, `</span>`].join(``) : [`+`, desc.prop.Min].join(``))
-                break;
-            }
-            case 0xF2: {//毒伤
-                let MIN = (desc.min.prop.Min+desc.min.prop.Min)/2;
-                let MAX = (desc.max.prop.Max+desc.max.prop.Max)/2;
-                let LEN = ((desc.len.prop.Param||desc.len.prop.Min)+(desc.len.prop.Param||desc.len.prop.Max))/2;
-                let SEC = LEN / FRAMES;
-
-                if(MIN === MAX){
-                    local = local.replace(/%d.*?%d/, Math.round((MIN+MAX)/2*LEN/256)).replace("%d", SEC);
-                } else {
-                    local = local.replace(`%d`, Math.round(MIN*LEN/256)).replace(`%d`, Math.round(MAX*LEN/256)).replace("%d", SEC);
-                }
-                break;
-            }
-            case 0xF3: {//电/冰/火/魔伤
-                local = local.replace(`%d`, desc.prop.Min).replace(`%d`, desc.prop.Max);
-                break;
-            }
-            case 0xFF: {//依赖descline渲染
-
-                const skill = skillMap[`${desc.prop.Param}`];
-                const skilldesc = skilldescMap[skill.skilldesc];
-                const key = skilldesc[`item proc text`];
-                let count = skilldesc[`item proc descline count`];
-
-                const templet = LOCAL_MAP[key][LNG];
-                const array = templet.split(`\n`);
-
-                for (let index = 0; index < array.length; index++) {
-                    let line = array[index];
-                    if (index === array.length - 1) {
-                        line = line.replace(`%s`, [skill.auralencalc / FRAMES, LOGIC.SECONDS[LNG]].join(` `));
-                    } else {
-                        const descline = skilldesc[`descline${index}`];
-                        if (descline) {
-                            desctexta = skilldesc[`desctexta${index}`];
-                            desccalca = skilldesc[`desccalca${index}`];
-                            line = line.replace(`%s`, LOCAL_MAP[desctexta][LNG]
-                                .replace(`%+d`, `+` + skill[desccalca.replace(`par`, `Param`)])
-                                .replace(`%d`, skill[desccalca.replace(`par`, `Param`)])
-                                .replace(`%s`, skill[desccalca.replace(`par`, `Param`)])
-                                .replace(`%%`, `%`));
-                        }
-                    }
-                    array[index] = line;
-                }
-                local = array.reverse().join(`<BR>`);
-                break;
-            }
-            default:
-                console.log(`desc.descfunc = ${descfunc} 未定义渲染方式`);
-                alert(`desc.descfunc = ${descfunc} 未定义渲染方式`);
-                break;
-        }
-
-        local = local.replace(`%%`, `%`).replace(`+-`, `-`);//.replace(`-+`,`-`);
-        if (local) {
-            propDiv.innerHTML += local;
-            if (desc.descstr2) {
-                propDiv.innerHTML += LOCAL_MAP[desc.descstr2][LNG];
-            }
-            propDiv.innerHTML += `<BR>`;
-        }
     }
     return propDiv;
 }
