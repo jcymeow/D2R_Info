@@ -305,7 +305,6 @@ function result(array) {
                     //耐久
                     contents.push(LOGIC.DURABILITY[LNG] + base.durability);
 
-                    console.log(uniqueitem);
                     //盾牌:重击伤害
                     if(CODES.shie.includes(base.code) || CODES.ashd.includes(base.code)){
                         contents.push(LOGIC.SMITEDAM[LNG] + `${base.mindam}-${base.maxdam}`);
