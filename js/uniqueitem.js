@@ -8,6 +8,8 @@ let UNIQUEITEMS = [];
 
 function loaded() {
     loadLNG();
+    common();
+    init();
 
     //Enter to query
     document.getElementById('uniqueitemInput').addEventListener('keypress', function (e) {
@@ -20,13 +22,10 @@ function loaded() {
     //Reset & query
     document.getElementById('resetBtn').addEventListener('click', function () {
         document.getElementById('uniqueitemInput').value = '';
-
         const radioButtons = document.querySelectorAll('input[type="radio"]');
         radioButtons.forEach(radio => {
             radio.checked = false;
         });
-
-        //filter();
     });
 
     //change to query
@@ -52,25 +51,29 @@ function loaded() {
             const selectedLang = this.getAttribute('data-lang');
             if (selectedLang !== LNG) {
                 saveLNG(selectedLang);
-
                 document.querySelectorAll('.lang-btn').forEach(button => {
                     button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
                 });
-
-                init();
-                filter();
             }
+            init();
+            filter();
         });
         button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
     });
 
-    init();
-    //filter();
 }
 
 function init() {
 
-    common();
+    // 组件本地化
+    COMPONENTS.forEach(item => {
+        const ele = document.getElementById(item.id);
+        if (ele) {
+            const radio = ele.querySelector(`input[type="radio"]`);
+            ele[item.key] = item[LNG];
+            if (radio) ele.prepend(radio);
+        }
+    });
 
     /** 暗金物品 */
     UNIQUEITEMS = clone(EXCEL_UNIQUEITEMS);

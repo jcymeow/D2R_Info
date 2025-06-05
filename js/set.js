@@ -10,7 +10,10 @@ const SET_MAP = {};
 
 function loaded() {
     loadLNG();
-
+    common();
+    init();
+    result();
+    
     //change to query
     document.getElementById('searchForm').querySelectorAll('input[name="sets"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -28,19 +31,28 @@ function loaded() {
                 document.querySelectorAll('.lang-btn').forEach(button => {
                     button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
                 });
-
-                init();
-                result();
+                
             }
+            loadLNG();
+            init();
+            result();
         });
         button.classList.toggle('active', button.getAttribute('data-lang') === LNG);
     });
 
-    init();
 }
 
 function init() {
-    common();
+
+    // 组件本地化
+    COMPONENTS.forEach(item => {
+        const ele = document.getElementById(item.id);
+        if (ele) {
+            const radio = ele.querySelector(`input[type="radio"]`);
+            ele[item.key] = item[LNG];
+            if (radio) ele.prepend(radio);
+        }
+    });
 
     // SET_MAP
     for (const set of EXCEL_SETS){

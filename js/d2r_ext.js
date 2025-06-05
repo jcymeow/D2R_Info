@@ -1512,15 +1512,6 @@ function loadLNG() {
 }
 
 function common() {
-    // 组件本地化
-    COMPONENTS.forEach(item => {
-        const ele = document.getElementById(item.id);
-        if (ele) {
-            const radio = ele.querySelector(`input[type="radio"]`);
-            ele[item.key] = item[LNG];
-            if (radio) ele.prepend(radio);
-        }
-    });
     
     // CHAR_MAP <0/Amazon/ama, object>
     if(-1 !== EXCEL_CHARSTATS.findIndex(item => item.class === 'Expansion')){
