@@ -4,6 +4,7 @@ Diablo II: Resurrected Info Query HTML Project
 特色1: 本地页面,无需容器,无网络延迟
 特色2: 符文之语页,底材支持向上兼容 eg.长矛包括(长矛+近战武器+武器) 弓/弩包括(弓/弩+武器)
 特色3: 暗金物品页,包含升级后的需求
+特色4: 套装装备页,包含升级后的需求
 
 在线版地址 https://jcymeow.github.io/D2R_Info/index.html
 git仓库 https://github.com/jcymeow/D2R_Info
@@ -20,6 +21,10 @@ git仓库 https://github.com/jcymeow/D2R_Info
     
     族繁不及备载,感谢诸位
 
+2025/6/x v0.9.9
+    添加 套装装备页
+    修正 +命中(依角色等級而定)/+命中%(依角色等級而定)/+对恶魔命中(依角色等級而定)/+对不死命中(依角色等級而定) 词条
+    
 2025/6/4 v0.9.8
     优化 统一变量名称,抽取公共方法
     修正 物理小大伤显示方式

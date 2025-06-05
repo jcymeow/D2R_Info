@@ -22,6 +22,18 @@ Array.prototype.removeAll = function(values) {
   return this;
 };
 
+Array.prototype.replace = function(values, newValue){
+  let index = -1;
+  for (let i = this.length - 1; i >= 0; i--) {
+    if (values.includes(this[i])) {
+      index = i;
+      this.splice(i, 1);
+    }
+  }
+  if(index > -1)this.splice(index, 0, newValue);
+  return this;
+}
+
 Array.prototype.includesAll = function(array){
   return array.every(item => this.includes(item));
 }

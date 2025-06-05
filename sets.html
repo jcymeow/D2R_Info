@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="title"></title>
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="excel/armor.js"></script>
+    <script src="excel/charstats.js"></script>
+    <script src="excel/gems.js"></script>
+    <script src="excel/itemstatcost.js"></script>
+    <script src="excel/misc.js"></script>
+    <script src="excel/monstats.js"></script>
+    <script src="excel/playerclass.js"></script>
+    <script src="excel/properties.js"></script>
+    <script src="excel/runes.js"></script>
+    <script src="excel/setitems.js"></script>
+    <script src="excel/sets.js"></script>
+    <script src="excel/skilldesc.js"></script>
+    <script src="excel/skills.js"></script>
+    <script src="excel/uniqueitems.js"></script>
+    <script src="excel/weapons.js"></script>
+
+    <script src="strings/item-modifiers.js"></script>
+    <script src="strings/item-names.js"></script>
+    <script src="strings/item-runes.js"></script>
+    <script src="strings/monsters.js"></script>
+    <script src="strings/skills.js"></script>
+
+    <script src="js/d2r_ext.js"></script>
+    <script src="js/jcy.js"></script>
+    <script src="js/set.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loaded);
+    </script>
+
+</head>
+
+<body>
+    <div class="search-box">
+        <div class="title-row">
+            <h2><a id="runewords" href="index.html"></a></h2>
+            <h2><a id="uniqueitems" href="uniqueitems.html"></a></h2>
+            <h2><a id="sets" href="sets.html" class="active"></a></h2>
+            <div class="language-selector">
+                <button class="lang-btn" data-lang="enUS">EN</button>
+                <button class="lang-btn" data-lang="zhCN">简</button>
+                <button class="lang-btn" data-lang="zhTW">繁</button>
+            </div>
+        </div>
+
+        <form id="searchForm">
+            <!-- 套装名称 -->
+            <div class="form-row">
+                <div id="setclass" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="M'avina's Battle Hymn" class="sets-item"><input type="radio" name="sets" value="M'avina's Battle Hymn"> </label>
+                    <label id="Tal Rasha's Wrappings" class="sets-item"><input type="radio" name="sets" value="Tal Rasha's Wrappings"> </label>
+                    <label id="Trang-Oul's Avatar" class="sets-item"><input type="radio" name="sets" value="Trang-Oul's Avatar"> </label>
+                    <label id="Griswold's Legacy" class="sets-item"><input type="radio" name="sets" value="Griswold's Legacy"> </label>
+                    <label id="Immortal King" class="sets-item"><input type="radio" name="sets" value="Immortal King"> </label>
+                    <label id="Aldur's Watchtower" class="sets-item"><input type="radio" name="sets" value="Aldur's Watchtower"> </label>
+                    <label id="Natalya's Odium" class="sets-item"><input type="radio" name="sets" value="Natalya's Odium"> </label>
+                </div>
+                <div id="set2" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="Bul-Kathos' Children" class="sets-item"><input type="radio" name="sets" value="Bul-Kathos' Children"> </label>
+                </div>
+                <div id="set3" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="Civerb's Vestments" class="sets-item"><input type="radio" name="sets" value="Civerb's Vestments"> </label>
+                    <label id="Hsarus' Defense" class="sets-item"><input type="radio" name="sets" value="Hsarus' Defense"> </label>
+                    <label id="Cleglaw's Brace" class="sets-item"><input type="radio" name="sets" value="Cleglaw's Brace"> </label>
+                    <label id="Infernal Tools" class="sets-item"><input type="radio" name="sets" value="Infernal Tools"> </label>
+                    <label id="Berserker's Garb" class="sets-item"><input type="radio" name="sets" value="Berserker's Garb"> </label>
+                    <label id="Death's Disguise" class="sets-item"><input type="radio" name="sets" value="Death's Disguise"> </label>
+                    <label id="Naj's Ancient Set" class="sets-item"><input type="radio" name="sets" value="Naj's Ancient Set"> </label>
+                    <label id="Cow King's Leathers" class="sets-item"><input type="radio" name="sets" value="Cow King's Leathers"> </label>
+                    <label id="Sazabi's Grand Tribute" class="sets-item"><input type="radio" name="sets" value="Sazabi's Grand Tribute"> </label>
+                </div>
+                <div id="set4" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="Iratha's Finery" class="sets-item"><input type="radio" name="sets" value="Iratha's Finery"> </label>
+                    <label id="Isenhart's Armory" class="sets-item"><input type="radio" name="sets" value="Isenhart's Armory"> </label>
+                    <label id="Vidala's Rig" class="sets-item"><input type="radio" name="sets" value="Vidala's Rig"> </label>
+                    <label id="Milabrega's Regalia" class="sets-item"><input type="radio" name="sets" value="Milabrega's Regalia"> </label>
+                    <label id="Angelical Raiment" class="sets-item"><input type="radio" name="sets" value="Angelical Raiment"> </label>
+                    <label id="Arctic Gear" class="sets-item"><input type="radio" name="sets" value="Arctic Gear"> </label>
+                    <label id="Arcanna's Tricks" class="sets-item"><input type="radio" name="sets" value="Arcanna's Tricks"> </label>
+                    <label id="Heaven's Brethren" class="sets-item"><input type="radio" name="sets" value="Heaven's Brethren"> </label>
+                    <label id="Orphan's Call" class="sets-item"><input type="radio" name="sets" value="Orphan's Call"> </label>
+                    <label id="McAuley's Folly" class="sets-item"><input type="radio" name="sets" value="McAuley's Folly"> </label>
+                    <label id="Hwanin's Majesty" class="sets-item"><input type="radio" name="sets" value="Hwanin's Majesty"> </label>
+                </div>
+                <div id="set5" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="Cathan's Traps" class="sets-item"><input type="radio" name="sets" value="Cathan's Traps"> </label>
+                    <label id="Tancred's Battlegear" class="sets-item"><input type="radio" name="sets" value="Tancred's Battlegear"> </label>
+                    <label id="The Disciple" class="sets-item"><input type="radio" name="sets" value="The Disciple"> </label>
+                </div>
+                <div id="set6" class="form-title"></div>
+                <div class="radio-group">
+                    <label id="Sigon's Complete Steel" class="sets-item"><input type="radio" name="sets" value="Sigon's Complete Steel"> </label>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div id="result"></div>
+</body>
+
+</html>

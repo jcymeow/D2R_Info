@@ -246,7 +246,7 @@ function result(array) {
         // container image
         const imageDiv = document.createElement('div');
         imageDiv.className = 'image-box';
-        imageDiv.innerHTML = `<img src="image/${id}.jpg" onerror="this.src='image/NONE.png'" />`;
+        imageDiv.innerHTML = `<img src="image/uniqueitem/${id}.jpg" onerror="this.src='image/NONE.png'" />`;
 
         // contianer x
         const xDiv = document.createElement('div');
@@ -304,6 +304,16 @@ function result(array) {
                     contents.push(LOGIC.REQSTR[LNG] + (reqstr || "-"));
                     //耐久
                     contents.push(LOGIC.DURABILITY[LNG] + base.durability);
+
+                    console.log(uniqueitem);
+                    //盾牌:重击伤害
+                    if(CODES.shie.includes(base.code) || CODES.ashd.includes(base.code)){
+                        contents.push(LOGIC.SMITEDAM[LNG] + `${base.mindam}-${base.maxdam}`);
+                    }
+                    //鞋子:踢击伤害
+                    if(CODES.boot.includes(base.code)){
+                        contents.push(LOGIC.KICKDAM[LNG] + `${base.mindam}-${base.maxdam}`);
+                    }
 
                     const div = document.createElement(`div`);
                     div.className = `base-box`;

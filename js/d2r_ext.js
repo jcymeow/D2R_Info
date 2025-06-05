@@ -379,6 +379,60 @@ const PROPERTIES_EXT = [
 //itemstatcost.js 补档
 const ITEMSTATCOST_EXT = [
     {
+        "Stat": "state",
+        "*ID": 98,
+        "Send Other": 1,
+        "Signed": "",
+        "Send Bits": 1,
+        "Send Param Bits": 8,
+        "UpdateAnimRate": "",
+        "Saved": "",
+        "CSvSigned": "",
+        "CSvBits": "",
+        "CSvParam": "",
+        "fCallback": 1,
+        "fMin": "",
+        "MinAccr": "",
+        "Encode": "",
+        "Add": 415,
+        "Multiply": 64,
+        "ValShift": "",
+        "1.09-Save Bits": 6,
+        "1.09-Save Add": 20,
+        "Save Bits": 1,
+        "Save Add": "",
+        "Save Param Bits": 8,
+        "keepzero": "",
+        "op": "",
+        "op param": "",
+        "op base": "",
+        "op stat1": "",
+        "op stat2": "",
+        "op stat3": "",
+        "direct": "",
+        "maxstat": "",
+        "damagerelated": "",
+        "itemevent1": "",
+        "itemeventfunc1": "",
+        "itemevent2": "",
+        "itemeventfunc2": "",
+        "descpriority": "",
+        "descfunc": 0xF0,
+        "descval": "",
+        "descstrpos": "ModStrF002",
+        "descstrneg": "ModStrF002",
+        "descstr2": "",
+        "dgrp": "",
+        "dgrpfunc": "",
+        "dgrpval": "",
+        "dgrpstrpos": "",
+        "dgrpstrneg": "",
+        "dgrpstr2": "",
+        "stuff": "",
+        "advdisplay": "",
+        "*eol": 0
+    },
+    {
         "Stat": "item_replenish_durability",
         "*ID": 252,
         "Send Other": "",
@@ -611,7 +665,15 @@ const ITEM_MODIFIERS_EXT = [
         "enUS": "%+d to Random Class Skill Levels",
         "zhTW": "%+d 隨機角色技能",
         "zhCN": "%+d 随机角色技能"
+    },
+    {
+        "id": 0xF002,
+        "Key": "ModStrF002",
+        "enUS": "Character Displays Aura Effect",
+        "zhTW": "角色显示光环效果",
+        "zhCN": "角色顯示光環效果"
     }
+
 ];
 
 // 
@@ -676,6 +738,13 @@ const COMPONENTS = [
         "zhCN": "暗金物品",
         "zhTW": "暗金物品",
         "enUS": "UniqueItems"
+    },
+    {
+        "id": "sets",
+        "key": "innerHTML",
+        "zhCN": "套装装备",
+        "zhTW": "套裝裝備",
+        "enUS": "Set Item"
     },
     {
         "id": "runewordInput",
@@ -1075,7 +1144,273 @@ const COMPONENTS = [
         "zhCN": "6孔",
         "zhTW": "6孔",
         "enUS": "6 Sockets"
-    }
+    },
+    {
+        "id": "setclass",
+        "key": "innerText",
+        "zhCN": "职业套装",
+        "zhTW": "職業套裝",
+        "enUS": "Class Sets"
+    },
+    {
+        "id": "set2",
+        "key": "innerText",
+        "zhCN": "两件套",
+        "zhTW": "兩件套",
+        "enUS": "Two-piece Sets"
+    },
+    {
+        "id": "set3",
+        "key": "innerText",
+        "zhCN": "三件套",
+        "zhTW": "三件套",
+        "enUS": "Three-piece Sets"
+    },
+    {
+        "id": "set4",
+        "key": "innerText",
+        "zhCN": "四件套",
+        "zhTW": "四件套",
+        "enUS": "Four-piece Sets"
+    },
+    {
+        "id": "set5",
+        "key": "innerText",
+        "zhCN": "五件套",
+        "zhTW": "五件套",
+        "enUS": "Five-piece Sets"
+    },
+    {
+        "id": "set6",
+        "key": "innerText",
+        "zhCN": "六件套",
+        "zhTW": "六件套",
+        "enUS": "Six-piece Sets"
+    },
+    {
+        "id": "Civerb's Vestments",
+        "key": "innerText",
+        "zhCN": "希弗伯的法衣",
+        "zhTW": "克維雷布的法衣",
+        "enUS": "Civerb's Vestments"
+    },
+    {
+        "id": "Hsarus' Defense",
+        "key": "innerText",
+        "zhCN": "萨鲁斯的防御",
+        "zhTW": "海沙魯的鐵禦",
+        "enUS": "Hsarus' Defense"
+    },
+    {
+        "id": "Cleglaw's Brace",
+        "key": "innerText",
+        "zhCN": "克雷格劳的支柱",
+        "zhTW": "克雷德勞的防備",
+        "enUS": "Cleglaw's Brace"
+    },
+    {
+        "id": "Iratha's Finery",
+        "key": "innerText",
+        "zhCN": "艾蕾萨的华服",
+        "zhTW": "依雷撒的華服",
+        "enUS": "Iratha's Finery"
+    },
+    {
+        "id": "Isenhart's Armory",
+        "key": "innerText",
+        "zhCN": "依森哈特的武器库",
+        "zhTW": "依森哈特的軍械",
+        "enUS": "Isenhart's Armory"
+    },
+    {
+        "id": "Vidala's Rig",
+        "key": "innerText",
+        "zhCN": "维达拉的配装",
+        "zhTW": "維達拉的配備",
+        "enUS": "Vidala's Rig"
+    },
+    {
+        "id": "Milabrega's Regalia",
+        "key": "innerText",
+        "zhCN": "米拉伯佳的王权",
+        "zhTW": "米拉伯佳戰裝",
+        "enUS": "Milabrega's Regalia"
+    },
+    {
+        "id": "Cathan's Traps",
+        "key": "innerText",
+        "zhCN": "卡珊的计谋",
+        "zhTW": "卡珊的衣著",
+        "enUS": "Cathan's Traps"
+    },
+    {
+        "id": "Tancred's Battlegear",
+        "key": "innerText",
+        "zhCN": "坦克雷的圣战装",
+        "zhTW": "坦克雷的戰裝",
+        "enUS": "Tancred's Battlegear"
+    },
+    {
+        "id": "Sigon's Complete Steel",
+        "key": "innerText",
+        "zhCN": "西刚的全身甲胄",
+        "zhTW": "西剛的全套鋼甲",
+        "enUS": "Sigon's Complete Steel"
+    },
+    {
+        "id": "Infernal Tools",
+        "key": "innerText",
+        "zhCN": "地狱工具",
+        "zhTW": "煉獄器具",
+        "enUS": "Infernal Tools"
+    },
+    {
+        "id": "Berserker's Garb",
+        "key": "innerText",
+        "zhCN": "狂战士的兵械",
+        "zhTW": "狂戰士的武裝",
+        "enUS": "Berserker's Garb"
+    },
+    {
+        "id": "Death's Disguise",
+        "key": "innerText",
+        "zhCN": "死神的伪装",
+        "zhTW": "死亡的偽裝",
+        "enUS": "Death's Disguise"
+    },
+    {
+        "id": "Angelical Raiment",
+        "key": "innerText",
+        "zhCN": "天使的装束",
+        "zhTW": "天使的衣裝",
+        "enUS": "Angelical Raiment"
+    },
+    {
+        "id": "Arctic Gear",
+        "key": "innerText",
+        "zhCN": "北极装备",
+        "zhTW": "北極裝備",
+        "enUS": "Arctic Gear"
+    },
+    {
+        "id": "Arcanna's Tricks",
+        "key": "innerText",
+        "zhCN": "阿卡娜的诡计",
+        "zhTW": "阿卡娜的詭計",
+        "enUS": "Arcanna's Tricks"
+    },
+    {
+        "id": "Natalya's Odium",
+        "key": "innerText",
+        "zhCN": "娜塔亚的杀意",
+        "zhTW": "娜塔亞的非難",
+        "enUS": "Natalya's Odium"
+    },
+    {
+        "id": "Aldur's Watchtower",
+        "key": "innerText",
+        "zhCN": "艾尔多的警戒塔",
+        "zhTW": "艾爾多的守衛",
+        "enUS": "Aldur's Watchtower"
+    },
+    {
+        "id": "Immortal King",
+        "key": "innerText",
+        "zhCN": "不朽之王",
+        "zhTW": "不朽之王",
+        "enUS": "Immortal King"
+    },
+    {
+        "id": "Tal Rasha's Wrappings",
+        "key": "innerText",
+        "zhCN": "塔·拉夏的裹尸布",
+        "zhTW": "塔拉夏的外袍",
+        "enUS": "Tal Rasha's Wrappings"
+    },
+    {
+        "id": "Griswold's Legacy",
+        "key": "innerText",
+        "zhCN": "格里斯沃尔德的遗产",
+        "zhTW": "格里斯瓦德的傳奇",
+        "enUS": "Griswold's Legacy"
+    },
+    {
+        "id": "Trang-Oul's Avatar",
+        "key": "innerText",
+        "zhCN": "塔格奥的化身",
+        "zhTW": "塔格奧的化身",
+        "enUS": "Trang-Oul's Avatar"
+    },
+    {
+        "id": "M'avina's Battle Hymn",
+        "key": "innerText",
+        "zhCN": "艾维娜的战斗诗歌",
+        "zhTW": "馬維娜之戰鬥詩歌",
+        "enUS": "M'avina's Battle Hymn"
+    },
+    {
+        "id": "The Disciple",
+        "key": "innerText",
+        "zhCN": "门徒",
+        "zhTW": "門徒",
+        "enUS": "The Disciple"
+    },
+    {
+        "id": "Heaven's Brethren",
+        "key": "innerText",
+        "zhCN": "天堂同袍",
+        "zhTW": "天堂的同胞",
+        "enUS": "Heaven's Brethren"
+    },
+    {
+        "id": "Orphan's Call",
+        "key": "innerText",
+        "zhCN": "孤儿的号令",
+        "zhTW": "孤兒的呼喚",
+        "enUS": "Orphan's Call"
+    },
+    {
+        "id": "Hwanin's Majesty",
+        "key": "innerText",
+        "zhCN": "桓因的威严",
+        "zhTW": "桓因的威嚴",
+        "enUS": "Hwanin's Majesty"
+    },
+    {
+        "id": "Sazabi's Grand Tribute",
+        "key": "innerText",
+        "zhCN": "圣·沙略的伟大颂词",
+        "zhTW": "沙薩比的崇高禮讚",
+        "enUS": "Sazabi's Grand Tribute"
+    },
+    {
+        "id": "Bul-Kathos' Children",
+        "key": "innerText",
+        "zhCN": "布尔凯索的子嗣",
+        "zhTW": "布爾凱索的子嗣",
+        "enUS": "Bul-Kathos' Children"
+    },
+    {
+        "id": "Cow King's Leathers",
+        "key": "innerText",
+        "zhCN": "牛魔王之革",
+        "zhTW": "牛王皮甲",
+        "enUS": "Cow King's Leathers"
+    },
+    {
+        "id": "Naj's Ancient Set",
+        "key": "innerText",
+        "zhCN": "诺吉的古代遗物",
+        "zhTW": "娜吉的上古遺物",
+        "enUS": "Naj's Ancient Set"
+    },
+    {
+        "id": "McAuley's Folly",
+        "key": "innerText",
+        "zhCN": "山德的愚行",
+        "zhTW": "山德的愚行",
+        "enUS": "McAuley's Folly"
+    },
 ];
 
 const LOGIC = {
@@ -1144,6 +1479,16 @@ const LOGIC = {
         "zhTW": "基礎武器速度:",
         "enUS": "WeaponSpeedModifier:"
     },
+    "SMITEDAM": {
+        "zhCN": "重击伤害:",
+        "zhTW": "重擊傷害:",
+        "enUS": "Smite Damage:"
+    },
+    "KICKDAM": {
+        "zhCN": "踢击伤害:",
+        "zhTW": "踢擊傷害:",
+        "enUS": "Kick Damage:"
+    },
 };
 
 let LNG = '';
@@ -1155,7 +1500,6 @@ const MISC_MAP = {};
 const PROPERTY_MAP = {};
 const SKILL_MAP = {};
 const SKILLDESC_MAP = {};
-
 
 function saveLNG(value) {
     LNG = value;
@@ -1280,8 +1624,6 @@ function common() {
         PROPERTY_MAP[item.code] = item;
     }
 
-
-
 }
 
 
@@ -1349,7 +1691,15 @@ function format(local, itemstatcost) {
             break;
         }
         case 19: {
-            if (CODE.includes("/lvl")) {
+            if (/att.*?\/lvl/.test(CODE)){
+                if (PARAM) {
+                    local = local.replace("%+d", `+${PARAM / 2}`)
+                        .replace("%d", `+${PARAM / 2}`);
+                } else {
+                    local = local.replace("%+d", MIN < MAX ? `+<span class='range-span'>${MIN / 2}-${MAX / 2}</span>` : `+${MIN / 2}`)
+                        .replace("%d", MIN < MAX ? `<span class='range-span'>${MIN / 2}-${MAX / 2}</span>` : `+${MIN / 2}`);
+                }
+            } else if (CODE.includes("/lvl")) {
                 if (PARAM) {
                     local = local.replace("%+d", `+${PARAM / CONSTANTS.PERLEVEL}`)
                         .replace("%d", `+${PARAM / CONSTANTS.PERLEVEL}`);
@@ -1410,7 +1760,7 @@ function format(local, itemstatcost) {
         }
         /** 自定义区 **/
         case 0xF0: {
-            // 无参数 [ethereal]
+            // 无参数 [ethereal, state]
             break;
         }
         case 0xF1: {//所有属性/抗性
