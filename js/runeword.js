@@ -256,7 +256,8 @@ function filter() {
     const formData = {
         keyword: document.getElementById(`searchForm`).querySelector(`input[type="text"]`).value,
         type: document.getElementById(`searchForm`).querySelector(`input[name="type"]:checked`)?.value || ``,
-        sockets: document.getElementById(`searchForm`).querySelector(`input[name="sockets"]:checked`)?.value || 0
+        sockets: document.getElementById(`searchForm`).querySelector(`input[name="sockets"]:checked`)?.value || 0,
+        rune : document.getElementById(`searchForm`).querySelector(`input[name="rune"]:checked`)?.value || ``
     };
 
     for (const rune of RUNEWORDS) {
@@ -284,6 +285,12 @@ function filter() {
 
             const allow = rune.ITYPES.some(tt => tree.includes(tt));
             if (!allow) continue;
+        }
+
+        if (formData.rune !== ``) {
+            if(!rune.RUNES.includes(formData.rune)){
+                continue;
+            }
         }
 
         sel.push(rune);

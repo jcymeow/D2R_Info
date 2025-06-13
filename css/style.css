@@ -72,6 +72,14 @@
             margin-bottom: 10px;
         }
 
+        .radio-group11 {
+            display: grid;
+            /*grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));*/
+            grid-template-columns: repeat(11, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .radio-item {
             display: flex;
             align-items: center;
